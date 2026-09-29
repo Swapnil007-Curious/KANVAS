@@ -1,0 +1,45 @@
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Pytest
+.pytest_cache/
+.pytest_ini
+
+# Raw Alibaba dataset — too large for GitHub (1.4 GB)
+ALIBABA-CLUSTER-TRACE-GPU-v2020/
+cluster-trace-gpu-v2020.zip
+*.zip
+
+# Raw data directory
+data/raw/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs and temp
+*.log
+*.tmp
+*.bak
+
+data/processed/kanvas_features*.csv
+data/processed/kanvas_features*.txt
+data/processed/lookback/
