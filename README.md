@@ -51,7 +51,7 @@ The raw trace is not included (about 1.4 GB). Download `cluster-trace-gpu-v2020`
 
 Derived from the Alibaba Cluster Trace GPU 2020 dataset (Weng et al., "MLaaS in the Wild: Workload Analysis and Scheduling in Large-Scale Heterogeneous GPU Clusters", NSDI 2022). User and job identifiers are removed from every exported file, and a test enforces it. Follow the original dataset's terms of use.
 
-https://huggingface.co/datasets/Swapnil007-Curious/kanvas-gpu-failure
+Published dataset: https://huggingface.co/datasets/Swapnil007-Curious/kanvas-gpu-failure
 
 ## References
 
