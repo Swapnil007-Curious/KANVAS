@@ -1,29 +1,45 @@
 # KANVAS
 
-**Kolmogorov-Arnold Network Verification and Analysis Suite.** An interpretable additive model (KAAM) that predicts GPU cluster task failure from scheduling and machine-telemetry features, benchmarked against logistic regression and a parameter-matched MLP on the Alibaba Cluster Trace GPU 2020 dataset.
+*KANVAS: Auditable Job Failure Prediction in GPU Clusters with an Additive Kolmogorov-Arnold Model*
 
-Author: Swapnil Shukla, Sri Ma Vidyalaya, India.
+KANVAS predicts whether a job on a shared GPU cluster will fail and shows the reason as one readable curve per input. Trained on Alibaba's public 2020 GPU trace, it matches a black-box network on a random split, then reveals its strongest signal largely tracked one heavy user.
+
+- Live demo: https://kanvas.streamlit.app
+- Code: https://github.com/Swapnil007-Curious/KANVAS
+- Paper: coming soon
+- Kaggle notebooks: coming soon
+- Author: Swapnil Shukla, Independent Researcher, India
+
+![The learned plan_cpu curve under a random task-level split and under a user-grouped split](figures/phase7/plan_cpu_curve_overlay.png)
+
+The model's curve for requested CPU (`plan_cpu`, 100 = 1 core). Trained on a random split (blue), it pushes risk up sharply for one-core requests. With users kept apart between train and test (orange), most of that rise disappears.
+
+## Results (18,890 tasks, 1-hour leak-free telemetry lookback)
+
+| Model | Parameters | Test AUC | AUC 95% CI | F1 | Brier |
+|---|---:|---:|---|---:|---:|
+| Logistic regression | 11 | 0.7346 | [0.713, 0.757] | 0.496 | 0.168 |
+| KAAM | 151 | 0.7520 | [0.731, 0.774] | 0.575 | 0.153 |
+| MLP (8,6) | 149 | 0.7558 | [0.734, 0.777] | 0.573 | 0.154 |
+
+Generated from `data/processed/publication/kanvas_benchmark_results.csv` (random task-level split, seed 42).
+
+- KAAM vs MLP: -0.0038 AUC, paired bootstrap 95% CI includes 0. The interpretability cost is not measurable at this sample size.
+- KAAM vs logistic regression: +0.0174 AUC, CI excludes 0.
+- KAAM per-feature importance agrees with exact SHAP on the MLP: Spearman rho = 0.745 (n = 2,834).
+- Initialization variance (std 0.0001) is far smaller than split variance (std 0.0104).
+
+Under a user-grouped split all three models fall below chance. See the limitations section.
 
 ## What it is
+
+KANVAS stands for Kolmogorov-Arnold Network Verification and Analysis Suite. Its model, KAAM (Kolmogorov-Arnold Additive Model), predicts GPU cluster task failure from scheduling and machine-telemetry features. It is benchmarked against logistic regression and a parameter-matched MLP on the Alibaba Cluster Trace GPU 2020 dataset.
 
 KAAM gives each of 10 input features its own learnable B-spline edge and sums the results:
 
     risk = sigmoid( sum_i phi_i(x_i) + bias ),   phi_i(x) = w_i * SiLU(x) + sum_j c_ij * B_j(x)
 
 Features never interact. A prediction is fully decomposed into 10 per-feature contributions, and each phi_i can be plotted as a curve. The model has 151 parameters (140 spline coefficients, 10 SiLU weights, 1 bias). Feature decoupling is enforced structurally with a PyTorch `ModuleDict` and checked by unit test.
-
-## Results (18,890 tasks, 1-hour leak-free telemetry lookback)
-
-| Model | Parameters | Test AUC |
-|---|---|---|
-| Logistic regression | 11 | 0.7346 |
-| KAAM | 151 | 0.7520 |
-| MLP (8,6) | 149 | 0.7558 |
-
-- KAAM vs MLP: -0.0038 AUC, paired bootstrap 95% CI includes 0. The interpretability cost is not measurable at this sample size.
-- KAAM vs logistic regression: +0.0174 AUC, CI excludes 0.
-- KAAM per-feature importance agrees with exact SHAP on the MLP: Spearman rho = 0.745 (n = 2,834).
-- Initialization variance (std 0.0001) is far smaller than split variance (std 0.0104).
 
 ## Limitations (read this)
 
@@ -55,6 +71,11 @@ Derived from the Alibaba Cluster Trace GPU 2020 dataset (Weng et al., "MLaaS in 
 
 - Liu et al., "KAN: Kolmogorov-Arnold Networks", 2024. arXiv:2404.19756
 - Weng et al., NSDI 2022 (dataset)
+
+## Related projects
+
+- VeriDex is a free assistant that answers from a fixed library of open textbooks and Indian statutes, cites a source passage for every sentence and labels anything from outside that library. Live: https://swapnil007-curious.github.io/VeriDex/ (code: https://github.com/Swapnil007-Curious/VeriDex)
+- ManuVox recognises 250 isolated American Sign Language signs from a webcam and speaks the result as a short English sentence, running entirely in the browser. Live: https://swapnil007-curious.github.io/ManuVox/ (code: https://github.com/Swapnil007-Curious/ManuVox)
 
 ## License
 
