@@ -1,0 +1,51 @@
+{
+ "model": "ebm",
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "grid": [],
+ "chosen": {
+  "interactions": "0"
+ },
+ "per_seed": [
+  {
+   "seed": 0,
+   "val_auc": 0.7622521230974891,
+   "seconds": 17.445016799960285,
+   "terms": 10,
+   "interaction_terms": []
+  },
+  {
+   "seed": 1,
+   "val_auc": 0.7618285967723296,
+   "seconds": 24.253452599979937,
+   "terms": 10,
+   "interaction_terms": []
+  },
+  {
+   "seed": 2,
+   "val_auc": 0.761273889726988,
+   "seconds": 18.45924949995242,
+   "terms": 10,
+   "interaction_terms": []
+  },
+  {
+   "seed": 3,
+   "val_auc": 0.7596291333639422,
+   "seconds": 21.6021502999356,
+   "terms": 10,
+   "interaction_terms": []
+  },
+  {
+   "seed": 4,
+   "val_auc": 0.7610689979354653,
+   "seconds": 23.810825900058262,
+   "terms": 10,
+   "interaction_terms": []
+  }
+ ]
+}

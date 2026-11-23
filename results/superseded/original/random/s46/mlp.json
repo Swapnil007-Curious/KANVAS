@@ -1,0 +1,137 @@
+{
+ "model": "mlp",
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "grid": [
+  {
+   "hidden": [
+    8,
+    6
+   ],
+   "lr": 0.003
+  },
+  {
+   "hidden": [
+    8,
+    6
+   ],
+   "lr": 0.01
+  },
+  {
+   "hidden": [
+    12
+   ],
+   "lr": 0.003
+  },
+  {
+   "hidden": [
+    12
+   ],
+   "lr": 0.01
+  }
+ ],
+ "grid_val_auc": [
+  0.7895092904060044,
+  0.7881656250292814,
+  0.7810300185214684,
+  0.7806402243814985
+ ],
+ "chosen": {
+  "hidden": [
+   8,
+   6
+  ],
+  "lr": 0.003
+ },
+ "grid_info": [
+  {
+   "best_epoch": 198,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.43827152252197266,
+   "seconds": 3.163404499995522,
+   "parameters": 149
+  },
+  {
+   "best_epoch": 133,
+   "epochs_run": 143,
+   "early_stopped": true,
+   "best_val_loss": 0.44002237915992737,
+   "seconds": 2.1957083999877796,
+   "parameters": 149
+  },
+  {
+   "best_epoch": 200,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.4583943486213684,
+   "seconds": 2.5307224999414757,
+   "parameters": 145
+  },
+  {
+   "best_epoch": 112,
+   "epochs_run": 122,
+   "early_stopped": true,
+   "best_val_loss": 0.4578801095485687,
+   "seconds": 1.5231541999382898,
+   "parameters": 145
+  }
+ ],
+ "per_seed": [
+  {
+   "seed": 0,
+   "val_auc": 0.7895092904060044,
+   "best_epoch": 198,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.43827152252197266,
+   "seconds": 3.163404499995522,
+   "parameters": 149
+  },
+  {
+   "seed": 1,
+   "val_auc": 0.7823477600892029,
+   "best_epoch": 200,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.45750513672828674,
+   "seconds": 3.0173414000310004,
+   "parameters": 149
+  },
+  {
+   "seed": 2,
+   "val_auc": 0.7828137639808976,
+   "best_epoch": 199,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.4523676037788391,
+   "seconds": 3.236564700026065,
+   "parameters": 149
+  },
+  {
+   "seed": 3,
+   "val_auc": 0.7917418613294853,
+   "best_epoch": 194,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.4396255910396576,
+   "seconds": 3.0566355999326333,
+   "parameters": 149
+  },
+  {
+   "seed": 4,
+   "val_auc": 0.779802229447573,
+   "best_epoch": 197,
+   "epochs_run": 200,
+   "early_stopped": false,
+   "best_val_loss": 0.4581376016139984,
+   "seconds": 3.048468199907802,
+   "parameters": 149
+  }
+ ]
+}

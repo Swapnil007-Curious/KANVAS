@@ -1,0 +1,63 @@
+\subsection{Interpretability}
+\label{sec:res-interp}
+
+\paragraph{The contributions are exact SHAP values.} Kernel SHAP with every one of the \V{shap.coalitions} feature coalitions, a background of \V{shap.background} training tasks and \V{shap.tasks} test tasks returns the centred \kaam{} contributions of the canonical model to within \V{shap.maxdiff} log-odds, and the ten contributions plus the bias reproduce the model's logit to within \V{shap.sumgap}. No sampling enters a \kaam{} explanation; the same holds for any additive model, the additive EBM included, so this property does not favour the KAN parameterisation over other additive models.
+
+\paragraph{The curves.} Figure~\ref{fig:curves} shows the ten curves of the canonical model for its five seeds, with the corresponding curve of the original sample. The five seeds give nearly identical curves. Validation chose no smoothness penalty on all five random splits of the full trace, and the strongest value, \V{model.lambdamax}, on the time-ordered split and on \V{full.lambda.grouped.em2} of the five user-grouped folds, where the validation tasks come from a later period or from other users. On the random splits the four request features therefore get curves that oscillate between the few values that occur (the ticks in Figure~\ref{fig:curves}); such a curve is informative only at observed values. The telemetry curves are smooth: risk rises with the recent kernel CPU of the machine and falls steeply as its recent load rises from low values, the pattern the first version reported and attributed, tentatively, to the trace recording telemetry mostly for workers that finished.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_all.pdf}
+\caption{The ten curves of the canonical \kaam{} (full trace, random split \V{prot.canon}) for five seeds, and the curve learned on the original sample (dashed), each centred on its mean over the training 5th to 95th percentile. Ticks: values of the discrete features held by at least \V{fig.tickshare} of training tasks, with height proportional to their share.}
+\label{fig:curves}
+\end{figure*}
+
+\paragraph{\kaam{} against the additive EBM.} The two additive models fit their shape functions in different ways, B-splines by gradient descent and piecewise-constant terms by cyclic boosting, so their agreement is a check on both (Table~\ref{tab:shapecorr}, Figure~\ref{fig:shapes}). On the grid fixed in the protocol the median correlation over the ten features is \V{ebm.r.median}; the telemetry curves agree closely, while two request features show almost no agreement (lowest: \V{ebm.r.worstfeat}, $r=\V{ebm.r.min}$). Evaluated at the training tasks' own values, an exploratory measure not fixed in the protocol, the median correlation is \V{ebm.rd.median} and the lowest \V{ebm.rd.min} (\V{ebm.rd.worstfeat}). The disagreement is therefore concentrated between observed values of the discrete requests, where neither model has data. On the canonical split the additive EBM, fitted once on the full trace, reaches a test AUC of \V{full.s42.ebm.auc} against \V{full.s42.kaam.auc} for \kaam{}.
+
+\input{tables/shapecorr}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/shapes_kaam_ebm.pdf}
+\caption{Shape functions of \kaam{} and of the additive EBM on the canonical split, centred on their means over the training 5th to 95th percentile. Panel titles give the correlation on the protocol's evenly spaced grid and at the training tasks' values. Ticks as in Figure~\ref{fig:curves}.}
+\label{fig:shapes}
+\end{figure*}
+
+\paragraph{The one-core curve under each protocol.} Figure~\ref{fig:plancpu} overlays the \feat{plan_cpu} curve of the first seed under every protocol of the full trace. On the canonical split the centred curve stands at \V{pc.randoms42.onecore} log-odds at one core. With User~1 removed it stands at \V{pc.louod1.onecore}, and with Users~1 and~4 removed at \V{pc.louod14.onecore}. In the user-grouped folds the value at one core ranges from \V{pc.grouped.minone} to \V{pc.grouped.maxone}; the lowest is fold~\V{full.mech.u1fold}, whose training set also lacks User~1. A centred value reflects the whole shape of a curve as well as the one-core effect, and the shape changes from fit to fit (correlation with the canonical curve between \V{pc.groupedf1.corr} and \V{pc.groupedf0.corr} over the grouped folds, \V{pc.timet.corr} for the time-ordered split), so the training data give the clearer evidence: with User~1 in training, one-core tasks fail at \V{rf.oc.with.minone} to \V{rf.oc.with.maxone} against \V{rf.oc.with.minother} to \V{rf.oc.with.maxother} for other tasks, and without User~1 at \V{rf.oc.groupedf4.one} against \V{rf.oc.groupedf4.other} (fold~\V{full.mech.u1fold}) and \V{rf.oc.louod1.one} against \V{rf.oc.louod1.other} (split without User~1). The curves are a complete account of each fitted model; they are not a stable account of the data. A second rise near thirteen cores appears with and without User~1 but not in the time-ordered curve.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/plan_cpu_protocols.pdf}
+\caption{The \feat{plan_cpu} curve of \kaam{} (first seed) under each protocol of the full trace, centred on the same window. Ticks: request values held by at least \V{fig.tickshare} of the canonical training tasks.}
+\label{fig:plancpu}
+\end{figure}
+
+\subsection{Case audits}
+\label{sec:res-cases}
+
+The four cases were selected on the canonical model's test set by the rule fixed in the first version: the most confident true positive and true negative, and the false negative and false positive with the highest risk at a threshold of 0.5 (Table~\ref{tab:cases}, Figure~\ref{fig:waterfall}). Each bar is the contribution of one feature relative to the mean training task, whose logit is \V{case.baselogit}; in every case the ten contributions and the bias reproduce the logit to within \V{case.maxsumgap}.
+
+The true positive (risk \V{case.tp.risk}) is a one-core request, and \feat{plan_cpu} contributes \V{case.tp.c.plancpu}, \V{case.tp.topshare} of the total absolute push. The identical four-field request occurs in \V{case.tp.samereq} training tasks, \V{case.tp.samerate} of which failed and \V{case.tp.sameu1} of which came from User~1. The false positive (risk \V{case.fp.risk}) is also a one-core request and receives the same \V{case.fp.c.plancpu} from \feat{plan_cpu}, plus \V{case.fp.c.planmem} from a large memory request. Its own request occurs in only \V{case.fp.samereq} training tasks, \V{case.fp.samerate} of which failed and none from User~1: the one-core term learned largely from one user's recurring job is applied to another user's task. The false negative (risk \V{case.fn.risk}, just below the threshold) requests half a core (\V{case.fn.c.plancpu}) and \V{case.fn.raw.instnum} instances (\V{case.fn.c.instnum}); its request occurs in \V{case.fn.samereq} training tasks with a failure rate of \V{case.fn.samerate}. The true negative (risk \V{case.tn.risk}) owes most of its score to \feat{plan_gpu} at the \V{case.tn.pct.plangpu} percentile (\V{case.tn.c.plangpu}); its exact request occurs in \V{case.tn.samereq} training tasks, none of which failed. A confident score that rests on a sparse region of one feature is visible at a glance in this form.
+
+\input{tables/cases}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/case_waterfall.pdf}
+\caption{Case audits of the canonical \kaam{}. Each panel runs from the logit of the mean training task (top) through the ten contributions, largest first, to the model's logit (bottom). The mean training task's logit is the bias plus each contribution's mean over training tasks. Labels give the raw value and its percentile among training tasks (pNN); the dashed line is risk 0.5.}
+\label{fig:waterfall}
+\end{figure*}
+
+\subsection{Lookback window}
+\label{sec:res-lookback}
+
+On the original sample each window keeps the split roles of the one-hour build, and \kaam{} is refitted for each window (Table~\ref{tab:lookback}, Figure~\ref{fig:lookback}). On the test tasks scored at both widths, the windows of \V{lb.wide} score between \V{lb.2.diff} and \V{lb.6.diff} AUC above the one-hour model, and the half-hour window differs from it by \V{lb.0p5.diff}; after Holm correction \V{lb.nsig} of the four differences is significant, and none exceeds \V{lb.maxabsdiff}. The one-hour window is a reasonable default, and the conclusions do not depend on it.
+
+\input{tables/lookback}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/lookback.pdf}
+\caption{Lookback ablation on the original sample. (a) AUC of each window minus the one-hour model on the test tasks both score, with paired 95\% intervals. (b) The \feat{avg_cpu_kernel} curve at each window.}
+\label{fig:lookback}
+\end{figure}

@@ -1,0 +1,59 @@
+\section{Results}
+\label{sec:results}
+
+Table~\ref{tab:bench_main} gives the test ROC-AUC of every model under every protocol on both datasets, and Figure~\ref{fig:bench} shows the same numbers with their intervals. Every paired comparison with \kaam{} is listed in Appendix~\ref{app:more}.
+
+\input{tables/bench_main}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/benchmark.pdf}
+\caption{Test ROC-AUC with 95\% bootstrap intervals for every model and protocol; filled markers: full trace, open markers: original sample. The EBMs were fitted on the original sample only. Dashed line: chance. Each panel has its own horizontal scale.}
+\label{fig:bench}
+\end{figure*}
+
+\subsection{Random splits}
+\label{sec:res-random}
+
+On the full trace \kaam{} reaches \V{full.random.kaam.auc} \V{full.random.kaam.ci}. It is above logistic regression by \V{full.random.lr.diff} (\V{full.random.lr.dci}, \V{full.random.lr.sig}) and below the parameter-matched MLP by \V{full.random.mlp.absdiff} (\V{full.random.mlp.dci}) and LightGBM by \V{full.random.lgbm.absdiff} (\V{full.random.lgbm.dci}); both differences are \V{full.random.lgbm.sig}. On the original sample, where all six models were fitted, \kaam{} reaches \V{orig.random.kaam.auc}: above logistic regression (\V{orig.random.lr.diff}) and the MLP (\V{orig.random.mlp.diff}), slightly below the additive EBM (\V{orig.random.ebm.diff}, \V{orig.random.ebm.dci}), and well below the two models with interactions, LightGBM (\V{orig.random.lgbm.diff}) and the EBM with pairwise terms (\V{orig.random.ebmi.diff}). All five differences are \V{orig.random.lgbm.sig} after Holm correction, and none lies within the $\pm$\V{stat.margin} margin, so \kaam{} matches none of the baselines. The two additive models are close to each other and the two models with interactions are close to each other, with a gap of about \V{orig.random.ebmi.absdiff} between the pairs. The MLP is weaker on the original sample than in the first version (\V{orig.random.mlp.auc} over five splits, against \V{v1.mlp.auc} on one split there); the first version's best learning rate is not in the present grid, and the networks now stop on validation AUC. The spread between splits is small next to these gaps (\kaam{}: standard deviation \V{orig.random.kaam.setstd} over the five splits of the original sample and \V{full.random.kaam.setstd} on the full trace).
+
+\paragraph{Exact duplicates.} In each random split of the full trace, \V{rf.full.dup.random.min} to \V{rf.full.dup.random.max} of the test tasks have an exact copy of all ten raw features among the training tasks: concurrent submissions of the same request that land on the same machine within the same window. Under the time-ordered split the share is \V{rf.full.dup.time.max}, in the user-grouped folds \V{rf.full.dup.grouped.min} to \V{rf.full.dup.grouped.max}, and in the original sample, which samples the trace sparsely, \V{rf.orig.dup.random.min} to \V{rf.orig.dup.random.max}. A random split of the full trace therefore rewards recognising duplicated requests as well as known users. The larger random-split score of LightGBM on the full trace than on the original sample (\V{full.random.lgbm.auc} against \V{orig.random.lgbm.auc}) is consistent with this, although we did not separate the two effects. This check was added after an independent review.
+
+\paragraph{Calibration.} PR-AUC and the Brier score order the models as ROC-AUC does (Table~\ref{tab:calib_full}). Under the random protocol LightGBM, the MLP and \kaam{} are close to calibrated on the full trace (ECE \V{full.random.lgbm.ece}, \V{full.random.mlp.ece} and \V{full.random.kaam.ece}), and logistic regression is less so (\V{full.random.lr.ece}; Figure~\ref{fig:reliability}). Under the time-ordered and user-grouped protocols the base rate of the test tasks differs from that of the training tasks, and calibration degrades (ECE \V{full.time.minece} to \V{full.time.maxece} and \V{full.grouped.minece} to \V{full.grouped.maxece}).
+
+\input{tables/calib_full}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/reliability.pdf}
+\caption{Reliability diagrams on the full trace (first seed, test sets of a protocol pooled, bins with at least \V{fig.minbin} tasks). Dashed: perfect calibration.}
+\label{fig:reliability}
+\end{figure*}
+
+\subsection{Time-ordered split}
+\label{sec:res-time}
+
+Training on the first \V{prot.time.train} of the full trace by start time and testing on the last \V{prot.time.test}, which spans \V{full.split.time.t.testdays} days, every model drops to between \V{full.time.minauc} and \V{full.time.maxauc}. \kaam{} reaches \V{full.time.kaam.auc} \V{full.time.kaam.ci} and LightGBM \V{full.time.lgbm.auc} \V{full.time.lgbm.ci}; their difference is \V{full.time.lgbm.sig}. The drop is not an effect of new users: \V{full.split.time.t.knownshare} of the test tasks come from users with training tasks, and on those tasks the models score between \V{full.timeknown.minauc} and \V{full.timeknown.maxauc}. The \V{full.split.time.t.newn} test tasks of new users are scored between \V{full.timenew.minauc} and \V{full.timenew.maxauc} (\kaam{}: \V{full.timenew.kaam.auc} \V{full.timenew.kaam.ci}). The period matters more than the user here. The validation period, the \V{prot.time.val} of tasks just before the test period, is a burst dominated by User~1, who submits \V{rf.full.time.val.u1} of its tasks against \V{rf.full.time.train.u1} of the training tasks and \V{rf.full.time.test.u1} of the test tasks. Its failure rate is \V{full.split.time.t.rateval} (\V{rf.full.time.val.rateno1} without User~1), against \V{full.split.time.t.ratetrain} in training and \V{full.split.time.t.ratetest} in test, and on it the same models reached validation AUCs between \V{full.time.minvalauc} and \V{full.time.maxvalauc}; the networks stopped after about \V{full.time.mlp.bestepoch} epochs (MLP) and \V{full.time.kaam.bestepoch} (\kaam{}). Model selection on this period overstated the accuracy in the test week, which starts \V{rf.full.time.gap} days after the last training task. The \V{full.split.time.t.newn} new-user test tasks come from \V{rf.full.time.newusers} users; on them LightGBM is the best model, above \kaam{} by \V{full.timenew.lgbm.absdiff} (\V{full.timenew.lgbm.sig} under the task-level bootstrap, which treats these tasks as independent although they come from few users). The original sample shows the same pattern (Table~\ref{tab:bench_main}).
+
+\subsection{User-grouped folds}
+\label{sec:res-grouped}
+
+With users held out, the full-trace AUCs fall to between \V{full.grouped.minauc} and \V{full.grouped.maxauc} (Table~\ref{tab:grouped_full}, Figure~\ref{fig:folds}). The five folds are unequal. StratifiedGroupKFold places User~1 with two small users in fold~\V{full.mech.u1fold}, whose \V{full.mech.u1.ntest} test tasks come from \V{full.mech.u1.testusers} users, so that fold is in effect a test on User~1 alone and its user-level interval rests on three clusters; the other folds hold \V{full.mech.nou.min.users} to \V{full.mech.nou.max.users} test users each. On those \V{full.gnou.nfolds} folds the mean AUCs are \V{full.gnou.mlp.auc} for the MLP, \V{full.gnou.kaam.auc} for \kaam{}, \V{full.gnou.lr.auc} for logistic regression and \V{full.gnou.lgbm.auc} for LightGBM; on the fold with User~1 they are \V{full.gu1.kaam.auc}, \V{full.gu1.mlp.auc}, \V{full.gu1.lr.auc} and \V{full.gu1.lgbm.auc} for \kaam{}, the MLP, logistic regression and LightGBM. Over all five folds \kaam{} has the highest mean, \V{full.grouped.kaam.auc} \V{full.grouped.kaam.ci}, but its differences from the MLP (\V{full.grouped.mlp.diff}, \V{full.grouped.mlp.dci}) and from LightGBM (\V{full.grouped.lgbm.diff}, \V{full.grouped.lgbm.dci}) are not significant, the interval of the difference with the MLP extends past the $\pm$\V{stat.margin} margin on both sides, and the ranking depends on how the folds are combined. No model is clearly best on new users. LightGBM's grouped fits stopped early: their mean best iteration ranges from \V{full.lgbm.grouped.minrounds} to \V{full.lgbm.grouped.maxrounds} boosting rounds over the folds, against \V{full.lgbm.random.minrounds} to \V{full.lgbm.random.maxrounds} on the random splits, and its seed-to-seed spread is \V{full.grouped.lgbm.seedstd} against \V{full.grouped.kaam.seedstd} for \kaam{}. Its low grouped score reflects ensembles that early stopping on validation users cut almost at once; a more strongly regularised or interaction-constrained boosting model was not tested. On the original sample \kaam{} leads on the \V{orig.gnou.nfolds} folds without User~1 (\V{orig.gnou.kaam.auc} against \V{orig.gnou.min} to \V{orig.gnou.lr.auc} for the other models), on about three thousand test tasks per fold. Against chance, \V{full.chance.nsig} of the \V{full.chance.nmodels} full-trace models and \V{orig.chance.nsig} of the \V{orig.chance.nmodels} original-sample models are significantly above 0.5 after Holm correction, and none is significantly below it. Fold AUCs on the full trace range from \V{full.fold.minauc} to \V{full.fold.maxauc}, and \V{full.fold.nbelow} of the \V{full.fold.npairs} fold-model pairs fall below 0.5.
+
+\input{tables/grouped_full}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/grouped_folds.pdf}
+\caption{User-grouped folds on the full trace. Open markers: AUC of each fold (mean over seeds) with its user-level 95\% interval; bar: mean over folds. Dashed line: chance.}
+\label{fig:folds}
+\end{figure}
+
+\paragraph{Why some folds fall below chance.} In every training split that contains User~1, one-core tasks fail at \V{rf.oc.with.minone} to \V{rf.oc.with.maxone} against \V{rf.oc.with.minother} to \V{rf.oc.with.maxother} for other tasks, and User~1 holds \V{rf.oc.with.minu1} to \V{rf.oc.with.maxu1} of the one-core training tasks. Without User~1 the difference almost disappears: one-core tasks fail at \V{rf.oc.groupedf4.one} against \V{rf.oc.groupedf4.other} among the training users of fold~\V{full.mech.u1fold}, and at \V{rf.oc.louod1.one} against \V{rf.oc.louod1.other} in the split without User~1. Among the held-out users of the other folds the picture is mixed (Table~\ref{tab:grouped_full}, lower rows): one-core tasks fail more often than other tasks in folds~0 and~1 (\V{full.mech.f0.teonerate} and \V{full.mech.f1.teonerate} against \V{full.mech.f0.teotherrate} and \V{full.mech.f1.teotherrate}) and less often in folds~2 and~3 (\V{full.mech.f2.teonerate} and \V{full.mech.f3.teonerate} against \V{full.mech.f2.teotherrate} and \V{full.mech.f3.teotherrate}). Ranking all test tasks by $-$\feat{plan_cpu}, the direction the models learn, gives AUCs of \V{full.mech.nou.min.teauc} to \V{full.mech.nou.max.teauc} on the held-out users, below chance in \V{full.mech.nou.nrev} of these folds: a rule learned largely from User~1 overstates the one-core risk of most other users and orders their larger requests poorly.
+
+\subsection{Leaving out the dominant users}
+\label{sec:res-louo}
+
+Removing every task of User~1 changes the test population as well as the training data: User~1's tasks fail at \V{users.full.u1.rate} against \V{users.full.nonu1.rate} for the other users, and their presence makes ranking easier. The AUCs of this protocol are therefore not directly comparable with those of the random protocol, and the protocol does not separate the effect of User~1 on training from its effect on the test set. Without User~1, and without Users~1 and~4, LightGBM still leads \kaam{} by \V{full.louoa.lgbm.absdiff} and \V{full.louob.lgbm.absdiff} (both \V{full.louob.lgbm.sig}). Its random-split lead is therefore not explained by the two dominant users; the exact duplicates described above, \V{rf.full.dup.louo.min} to \V{rf.full.dup.louo.max} of the test tasks of these splits, are one candidate.
+
+\input{sections/results_interp}

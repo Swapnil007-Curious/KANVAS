@@ -1,0 +1,96 @@
+{
+ "status_counts": {
+  "Terminated": 885073,
+  "Failed": 256762,
+  "Running": 115501,
+  "Waiting": 3714
+ },
+ "trace_span_days": 68.94528935185186,
+ "tables": {
+  "pai_task_table": {
+   "bytes": 113399047,
+   "rows": 1261050
+  },
+  "pai_instance_table": {
+   "bytes": 1975177618,
+   "rows": 7522002
+  },
+  "pai_machine_metric": {
+   "bytes": 434332982,
+   "rows": 2009423
+  },
+  "pai_machine_spec": {
+   "bytes": 73352,
+   "rows": 1897
+  },
+  "pai_job_table": {
+   "bytes": 133288196,
+   "rows": 1055501
+  }
+ },
+ "instance_metric_coverage": {
+  "Terminated": {
+   "with_metric_row": 2016262,
+   "instances": 4757371,
+   "share": 0.42381853338745284
+  },
+  "Failed": {
+   "with_metric_row": 904,
+   "instances": 969975,
+   "share": 0.0009319827830614191
+  }
+ },
+ "failed_instances_without_end_time": {
+  "count": 888444,
+  "instances": 969975,
+  "share": 0.9159452563210392
+ },
+ "users_full": {
+  "users": 1159,
+  "tasks": 539816,
+  "failures": 147873,
+  "u1_rank_by_tasks": 1,
+  "u4_rank_by_tasks": 4,
+  "u1_tasks": 167362,
+  "u1_failures": 80756,
+  "u1_task_share": 0.31003527127762054,
+  "u1_failure_share": 0.5461172763114294,
+  "u1_rate": 0.48252291440111855,
+  "u4_tasks": 19089,
+  "u4_failures": 16129,
+  "u4_task_share": 0.03536204929086948,
+  "u4_failure_share": 0.10907332643552238,
+  "u4_rate": 0.8449368746398449,
+  "u14_failure_share": 0.6551906027469517,
+  "top10_failure_share": 0.7321485328626591,
+  "u1_is_top_by_failures": true,
+  "start_span_days": 47.43340277777778
+ },
+ "users_original": {
+  "users": 738,
+  "tasks": 18890,
+  "failures": 5194,
+  "u1_rank_by_tasks": 1,
+  "u4_rank_by_tasks": 4,
+  "u1_tasks": 5864,
+  "u1_failures": 2816,
+  "u1_task_share": 0.310428798305982,
+  "u1_failure_share": 0.542164035425491,
+  "u1_rate": 0.48021828103683495,
+  "u4_tasks": 664,
+  "u4_failures": 551,
+  "u4_task_share": 0.035150873478030704,
+  "u4_failure_share": 0.10608394301116673,
+  "u4_rate": 0.8298192771084337,
+  "u14_failure_share": 0.6482479784366577,
+  "top10_failure_share": 0.7308432807085098,
+  "u1_is_top_by_failures": true,
+  "start_span_days": 47.405081018518516
+ },
+ "machine": {
+  "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+  "logical_cpus": 4,
+  "ram_gb": 19.748809814453125,
+  "python": "3.11.9"
+ }
+}

@@ -28,7 +28,7 @@ from kanvas.training import predict_proba, train_val_test_split
 ROOT = Path(__file__).resolve().parents[1]
 LARGE_CSV = ROOT / "data" / "processed" / "kanvas_features_large.csv"
 LOOKBACK_DIR = ROOT / "data" / "processed" / "lookback"
-PHASE5_BENCHMARK = ROOT / "data" / "processed" / "publication" / "kanvas_benchmark_results.csv"
+PHASE5_BENCHMARK = ROOT / "data" / "processed" / "publication" / "v1" / "kanvas_benchmark_results.csv"
 CHECKPOINT = ROOT / "models" / "kaam_canonical.pt"
 
 # Phase 5 scored Table 1 at 0.5 (kanvas/stability.py: THRESHOLD = 0.5, "not re-tuned per run");

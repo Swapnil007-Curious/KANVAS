@@ -43,3 +43,21 @@ desktop.ini
 data/processed/kanvas_features*.csv
 data/processed/kanvas_features*.txt
 data/processed/lookback/
+# v2: datasets that hold user and job identifiers (rebuilt by scripts/build_full_trace.py)
+data/interim/
+data/processed/v2/
+# run logs, watcher scripts and LaTeX intermediates
+logs/
+paper/**/*.aux
+paper/**/*.bbl
+paper/**/*.blg
+paper/**/*.out
+paper/**/*.xdv
+paper/**/*.tmp.pdf
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.out
+paper/ieee/references_ieee.bib
+# the first version's PDF (kept locally; superseded by paper/main.pdf)
+KANVAS_paper.pdf

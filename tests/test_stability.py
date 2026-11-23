@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "raw"
 SMALL_CSV = ROOT / "data" / "processed" / "kanvas_features.csv"
 LARGE_CSV = ROOT / "data" / "processed" / "kanvas_features_large.csv"
-PUBLICATION_DIR = ROOT / "data" / "processed" / "publication"
+PUBLICATION_DIR = ROOT / "data" / "processed" / "publication" / "v1"  # the v1 files, kept unchanged
 PUBLICATION_FILES = ["kanvas_feature_matrix.csv", "kanvas_phi_curves.csv", "kanvas_benchmark_results.csv"]
 
 SMALL_ROWS = 2310  # the Phase 3 development sample

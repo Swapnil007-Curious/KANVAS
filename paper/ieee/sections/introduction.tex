@@ -1,0 +1,12 @@
+\section{Introduction}
+\label{sec:intro}
+
+In the Alibaba PAI trace of 2020~\cite{weng2022mlaas}, \V{data.lab.rate} of the \V{data.lab.tasks} tasks with a final status failed. A model that flags risky jobs before they start is useful only if an operator can see why it flags them, and post hoc explanations estimate a black box's reasoning from the outside~\cite{lundberg2017shap,rudin2019stop}. A Kolmogorov-Arnold network~\cite{liu2025kan} with one edge per input and a sum is a generalized additive model whose B-spline curves are its whole explanation; we call it \kaam{}.
+
+Our earlier version, released with the code\footnote{\url{https://github.com/Swapnil007-Curious/KANVAS}; the repository also holds the full version of this paper, the protocol file and every result file.}, trained \kaam{} on an \V{data.orig.tasks}-task sample, matched an MLP on a random split, and found that its strongest signal came largely from one user. It had a small sample, few baselines, one split per protocol, and a leak: features were clipped at percentiles of all rows before splitting. Here we turn it into a systematic audit of what a random split measures on a cluster trace. Our contributions:
+\begin{itemize}
+\item a leak-free feature matrix for the whole labelled trace, with per-split clipping and scaling (\SecRef{sec:data});
+\item a comparison of six models under random, time-ordered, user-grouped and leave-dominant-user-out protocols fixed before any test label was read, with paired bootstrap tests, Holm correction and a test-access log (\SecRef{sec:protocols});
+\item the finding that the interaction models' random-split lead, earned partly on exact duplicates, disappears on new users, where no model is clearly best, and that every model transfers only weakly to the final week of the trace (\SecRef{sec:results});
+\item an audit chain, from a curve to a case audit to a leave-one-user-out curve, that exposes the shortcut behind the random-split scores.
+\end{itemize}

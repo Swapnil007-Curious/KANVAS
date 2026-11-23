@@ -1,0 +1,14 @@
+\section{Data and the Leak-Free Telemetry Window}
+\label{sec:data}
+
+We use the Alibaba cluster-trace-gpu-v2020 release~\cite{weng2022mlaas} (CC BY 4.0). Of its \V{data.raw.tasks} tasks, \V{data.lab.tasks} have a final status; \texttt{Failed} is the positive class and \texttt{Terminated} the negative class (failure rate \V{data.lab.rate}). The submitting user, from the job table, is a split key only.
+
+\emph{The leak.} A task's own telemetry cannot be used: the machine-metric table covers \V{data.cov.term} of terminated instances and \V{data.cov.fail} of failed ones, so the presence of telemetry would reveal the label. We therefore describe the machine. For each task we take the machine of its first instance and average the metric rows of \emph{other} jobs' workers on that machine that ended in the hour before the task started (Fig.~\ref{fig:pipeline}). No row of the task's own job and no row ending at or after its start is used. The ten features are four resource requests (\feat{plan_cpu}, \feat{plan_mem}, \feat{plan_gpu}, \feat{inst_num}), the machine's GPU count (\feat{cap_gpu}) and five window averages (\feat{avg_cpu_usr}, \feat{avg_gpu_util}, \feat{avg_cpu_kernel}, \feat{avg_load_1}, \feat{avg_net_receive}).
+
+\ifshowpipeline\input{../figures/pipeline}\fi
+
+\emph{Full trace and original sample.} The first version applied these rules to a stratified sample of \V{data.v1.sample} tasks and kept \V{data.orig.tasks}. We apply them to every labelled task: \V{data.full.tasks} tasks survive (\V{data.full.share}; \V{data.full.rate} failures, \V{users.full.users} users). Of the others, \V{data.tele.nowindow} are lost because no other job's metric row ended in the window, \V{data.tele.nomachine} because their machine has no telemetry at all, \V{data.missing.tasks} because a telemetry value is missing, and \V{data.tele.other} for other reasons. The build takes \V{data.build.minutes} minutes on a laptop with \V{data.ram} of memory and reproduces the first version's matrix value for value. We keep the first version's tasks as the \emph{original sample}.
+
+\emph{A leak in the first version.} The first version clipped each feature at its 1st and 99th percentiles over all rows before splitting. Here the clip bounds and the min-max scaling are fitted on each training split alone.
+
+\emph{Who fails.} User~1 submits \V{users.full.u1.taskshare} of the tasks and \V{users.full.u1.failshare} of the failures; User~4 submits \V{users.full.u4.taskshare} of the tasks with a failure rate of \V{users.full.u4.rate}; together they hold \V{users.full.u14.failshare} of all failures.

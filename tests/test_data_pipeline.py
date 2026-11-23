@@ -45,6 +45,24 @@ def test_feature_ranges_keys_exactly_match_feature_names(dataset):
     assert list(feature_ranges) == list(X.columns) == FEATURE_NAMES
 
 
+def test_build_does_not_clip_on_all_rows(dataset):
+    """v2 leak fix: the build returns raw values; clipping is fitted later on each training split."""
+    X, _, _, _ = dataset
+    tails = [c for c in FEATURE_NAMES if (X[c] > X[c].quantile(0.99)).any() or (X[c] < X[c].quantile(0.01)).any()]
+    assert tails, "every feature is already clipped at its all-row 1st/99th percentile"
+
+
+def test_v1_clipping_helper_still_reproduces_v1_bounds():
+    rng = np.random.default_rng(0)
+    from kanvas.data import clip_all_rows_v1
+
+    X = pd.DataFrame({c: rng.lognormal(0, 1, 1000) for c in FEATURE_NAMES})
+    clipped = clip_all_rows_v1(X)
+    for c in FEATURE_NAMES:
+        assert clipped[c].max() == pytest.approx(X[c].quantile(0.99))
+        assert clipped[c].min() == pytest.approx(X[c].quantile(0.01))
+
+
 def test_label_contains_only_zero_and_one(dataset):
     _, y, _, _ = dataset
     assert set(y.unique()) == {0, 1}

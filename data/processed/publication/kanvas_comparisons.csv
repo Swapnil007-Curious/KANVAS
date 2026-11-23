@@ -1,0 +1,57 @@
+dataset,protocol,subset,model,kaam_auc,other_auc,diff,ci_low,ci_high,p,unit,n_sets,p_holm,significant,within_margin
+full trace,random,all,lr,0.765635,0.732342,0.0332929,0.0319227,0.0346609,0.0009995,task,5,0.0029985,True,False
+full trace,random,all,mlp,0.765635,0.803935,-0.0382998,-0.0395474,-0.0370961,0.0009995,task,5,0.0029985,True,False
+full trace,random,all,lgbm,0.765635,0.899859,-0.134224,-0.135764,-0.132655,0.0009995,task,5,0.0029985,True,False
+full trace,time,all,lr,0.594029,0.575739,0.0182898,0.0155253,0.0210924,0.0009995,task,1,0.0029985,True,False
+full trace,time,all,mlp,0.594029,0.59608,-0.0020517,-0.0049534,0.000842033,0.147926,task,1,0.161919,False,True
+full trace,time,all,lgbm,0.594029,0.599322,-0.00529353,-0.0117627,0.000749238,0.0809595,task,1,0.161919,False,False
+full trace,time,known users,lr,0.596479,0.579546,0.0169326,0.0142269,0.0196073,0.0009995,task,1,0.0029985,True,False
+full trace,time,known users,mlp,0.596479,0.598836,-0.0023574,-0.00513724,0.000622655,0.12094,task,1,0.241879,False,True
+full trace,time,known users,lgbm,0.596479,0.599154,-0.00267543,-0.0087965,0.00349121,0.416792,task,1,0.416792,False,True
+full trace,time,new users,lr,0.465857,0.462209,0.00364839,-0.0248918,0.0325194,0.767616,task,1,0.767616,False,False
+full trace,time,new users,mlp,0.465857,0.48171,-0.0158524,-0.0411547,0.00911908,0.209895,task,1,0.41979,False,False
+full trace,time,new users,lgbm,0.465857,0.5338,-0.0679429,-0.106452,-0.0273118,0.0029985,task,1,0.0089955,True,False
+full trace,grouped,all,lr,0.641116,0.600262,0.0408547,0.0113176,0.0671765,0.0069965,user,5,0.0209895,True,False
+full trace,grouped,all,mlp,0.641116,0.636691,0.0044249,-0.0315232,0.0226021,0.932534,user,5,0.932534,False,False
+full trace,grouped,all,lgbm,0.641116,0.56559,0.0755261,-0.0306588,0.106579,0.28086,user,5,0.561719,False,False
+full trace,louo-d1,all,lr,0.70329,0.655792,0.0474984,0.042463,0.0525409,0.0009995,task,1,0.0029985,True,False
+full trace,louo-d1,all,mlp,0.70329,0.721025,-0.0177351,-0.0217812,-0.0138535,0.0009995,task,1,0.0029985,True,False
+full trace,louo-d1,all,lgbm,0.70329,0.844684,-0.141394,-0.14666,-0.136076,0.0009995,task,1,0.0029985,True,False
+full trace,louo-d14,all,lr,0.671794,0.629567,0.0422268,0.0370264,0.0473055,0.0009995,task,1,0.0029985,True,False
+full trace,louo-d14,all,mlp,0.671794,0.698082,-0.0262879,-0.0311225,-0.0214077,0.0009995,task,1,0.0029985,True,False
+full trace,louo-d14,all,lgbm,0.671794,0.804543,-0.132749,-0.138883,-0.126796,0.0009995,task,1,0.0029985,True,False
+original sample,random,all,lr,0.744235,0.722682,0.0215531,0.0149187,0.0287126,0.0009995,task,5,0.0049975,True,False
+original sample,random,all,mlp,0.744235,0.72201,0.0222248,0.0163597,0.0278214,0.0009995,task,5,0.0049975,True,False
+original sample,random,all,lgbm,0.744235,0.809761,-0.0655259,-0.0730113,-0.0580549,0.0009995,task,5,0.0049975,True,False
+original sample,random,all,ebm,0.744235,0.755567,-0.011332,-0.0143185,-0.00806467,0.0009995,task,5,0.0049975,True,False
+original sample,random,all,ebm_int,0.744235,0.802605,-0.0583704,-0.0655191,-0.0510554,0.0009995,task,5,0.0049975,True,False
+original sample,time,all,lr,0.594698,0.587613,0.0070852,-0.0172533,0.0310439,0.573713,task,1,1,False,False
+original sample,time,all,mlp,0.594698,0.523363,0.0713353,0.0435569,0.0987471,0.0009995,task,1,0.0049975,True,False
+original sample,time,all,lgbm,0.594698,0.618535,-0.0238364,-0.0465459,-0.00117138,0.0409795,task,1,0.163918,False,False
+original sample,time,all,ebm,0.594698,0.594949,-0.000250221,-0.0234005,0.0232891,0.955522,task,1,1,False,False
+original sample,time,all,ebm_int,0.594698,0.572618,0.0220805,-0.0135471,0.0568891,0.212894,task,1,0.638681,False,False
+original sample,time,known users,lr,0.602849,0.589395,0.0134538,-0.0107517,0.0391134,0.287856,task,1,0.575712,False,False
+original sample,time,known users,mlp,0.602849,0.532704,0.0701456,0.0421897,0.0996785,0.0009995,task,1,0.0049975,True,False
+original sample,time,known users,lgbm,0.602849,0.6205,-0.0176506,-0.0427087,0.00731302,0.170915,task,1,0.512744,False,False
+original sample,time,known users,ebm,0.602849,0.596326,0.00652338,-0.0182632,0.0325355,0.608696,task,1,0.608696,False,False
+original sample,time,known users,ebm_int,0.602849,0.565277,0.0375716,2.76992e-05,0.0766961,0.0509745,task,1,0.203898,False,False
+original sample,time,new users,lr,0.515493,0.564735,-0.0492416,-0.162004,0.057485,0.361819,task,1,1,False,False
+original sample,time,new users,mlp,0.515493,0.547779,-0.032286,-0.154347,0.0904677,0.578711,task,1,1,False,False
+original sample,time,new users,lgbm,0.515493,0.551544,-0.0360509,-0.146886,0.0701679,0.515742,task,1,1,False,False
+original sample,time,new users,ebm,0.515493,0.532557,-0.0170639,-0.112443,0.0772089,0.728636,task,1,1,False,False
+original sample,time,new users,ebm_int,0.515493,0.538624,-0.0231311,-0.126942,0.081746,0.66067,task,1,1,False,False
+original sample,grouped,all,lr,0.619619,0.560765,0.0588537,0.00384431,0.0984767,0.033983,user,5,0.135932,False,False
+original sample,grouped,all,mlp,0.619619,0.539585,0.0800334,0.0416712,0.0959842,0.0009995,user,5,0.0049975,True,False
+original sample,grouped,all,lgbm,0.619619,0.501878,0.117741,-0.0042464,0.148353,0.0769615,user,5,0.230885,False,False
+original sample,grouped,all,ebm,0.619619,0.489176,0.130443,-0.013849,0.1595,0.155922,user,5,0.311844,False,False
+original sample,grouped,all,ebm_int,0.619619,0.50357,0.116049,-0.0251869,0.150009,0.184908,user,5,0.311844,False,False
+original sample,louo-d1,all,lr,0.698281,0.661903,0.0363784,0.0122813,0.0600106,0.001999,task,1,0.005997,True,False
+original sample,louo-d1,all,mlp,0.698281,0.681282,0.0169997,-0.0030993,0.0367005,0.0949525,task,1,0.0949525,False,False
+original sample,louo-d1,all,lgbm,0.698281,0.75612,-0.0578392,-0.0822168,-0.0338933,0.0009995,task,1,0.0049975,True,False
+original sample,louo-d1,all,ebm,0.698281,0.721594,-0.0233123,-0.0392783,-0.0079433,0.0049975,task,1,0.009995,True,False
+original sample,louo-d1,all,ebm_int,0.698281,0.751872,-0.0535907,-0.0773454,-0.0303293,0.0009995,task,1,0.0049975,True,False
+original sample,louo-d14,all,lr,0.627434,0.601834,0.0255998,0.00364821,0.0461452,0.0209895,task,1,0.033983,True,False
+original sample,louo-d14,all,mlp,0.627434,0.530622,0.0968123,0.0670601,0.126192,0.0009995,task,1,0.0049975,True,False
+original sample,louo-d14,all,lgbm,0.627434,0.672978,-0.0455436,-0.0781228,-0.0123391,0.005997,task,1,0.017991,True,False
+original sample,louo-d14,all,ebm,0.627434,0.646312,-0.0188777,-0.0357272,-0.00287448,0.0169915,task,1,0.033983,True,False
+original sample,louo-d14,all,ebm_int,0.627434,0.685418,-0.057984,-0.0881056,-0.0277314,0.0009995,task,1,0.0049975,True,False

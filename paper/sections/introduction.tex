@@ -1,0 +1,19 @@
+\section{Introduction}
+\label{sec:intro}
+
+Shared GPU clusters run large numbers of machine-learning jobs, and many of them fail. In the Alibaba PAI trace of 2020~\cite{weng2022mlaas}, \V{data.lab.fail} of the \V{data.lab.tasks} tasks with a final status ended as failed (\V{data.lab.rate}). A model that flags risky jobs before they start could help operators schedule, check or deprioritise them, but an operator who acts on a flag needs to know why it was raised. Post hoc explanations such as SHAP~\cite{lundberg2017shap} estimate a black box's reasoning from the outside, and Rudin argues that consequential decisions should rest on models that are readable to begin with~\cite{rudin2019stop}.
+
+Kolmogorov-Arnold networks place a learnable univariate function on every edge~\cite{liu2025kan}. With one layer and one edge per input followed by a sum, such a network is a generalized additive model~\cite{hastie1986gam} whose shape functions are B-splines: every prediction is the sum of ten readable curves, and each curve is the model's entire treatment of its feature. We call this model \kaam{} and the study KANVAS.
+
+An earlier version of this work trained \kaam{} on an \V{data.orig.tasks}-task sample of the trace and found that it matched a parameter-matched MLP on a random split. Reading the model then showed that its strongest signal came largely from one user, and a single user-grouped partition put every model below chance. That version had a small sample, few baselines, one split per protocol and a leak: features were clipped at percentiles computed on all rows before splitting.
+
+This paper turns those observations into a systematic audit. We ask what a random task-level split measures on a cluster trace, and what a failure predictor built from request and telemetry features can and cannot do in deployment. The model is the one of the earlier version; the contribution is the audit:
+
+\begin{enumerate}
+\item We build ten leak-free features for every labelled task of the trace, \V{data.full.tasks} of which survive, with an attrition table, and fit clipping and scaling on each training split alone (\SecRef{sec:data}).
+\item We compare \kaam{} with logistic regression, a parameter-matched MLP, LightGBM~\cite{ke2017lightgbm} and two Explainable Boosting Machines~\cite{nori2019interpretml}, an additive one and one with pairwise interactions, under random, time-ordered, user-grouped and leave-dominant-user-out protocols written down before any test label was read, with paired bootstrap tests and Holm correction (\SecRef{sec:protocols}).
+\item We find that the models with interactions lead on random splits by up to \V{full.random.lgbm.absdiff} AUC, that \V{rf.full.dup.random.min} of random-split test tasks duplicate a training task exactly, that the lead disappears when users are held out, where no model is clearly best, and that every model transfers only weakly to the final week of the trace, even for known users (\SecRef{sec:res-random} to \SecRef{sec:res-louo}).
+\item We show how the exact additive explanations expose the shortcut behind the random-split scores: a one-core rule learned from one user, visible in a curve and a case audit, absent from the training data once that user is removed, and applied by the model to other users' tasks (\SecRef{sec:res-interp} and \SecRef{sec:res-cases}).
+\end{enumerate}
+
+We release the code, the identifier-free feature matrix and every result file. The models predict failures for users whose recurring jobs are in the training data; they transfer poorly to new users, and \SecRef{sec:discussion} states which deployments the results support.

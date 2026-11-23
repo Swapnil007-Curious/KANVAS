@@ -1,0 +1,43 @@
+% Pipeline and leak-free window (TikZ). Shared by main.tex and ieee/main_ieee.tex; the width follows \linewidth.
+\begin{\pipelinefig}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\sffamily\small,
+  box/.style={draw=black!70, rounded corners=2pt, fill=black!4, align=center, minimum height=9mm, inner sep=3pt},
+  arr/.style={-{Stealth[length=2.2mm]}, black!70, thick},
+  lbl/.style={font=\sffamily\scriptsize, black!70, align=center}]
+% ---------------------------------------------------------------- join path
+\node[box, text width=24mm] (task) {task table\\{\scriptsize request, label}};
+\node[box, text width=24mm, right=14mm of task] (inst) {instance table\\{\scriptsize first instance}};
+\node[box, text width=24mm, right=14mm of inst] (mm) {machine metrics\\{\scriptsize other jobs, window}};
+\node[box, text width=22mm, right=12mm of mm] (spec) {machine spec\\{\scriptsize \texttt{cap\_gpu}}};
+\node[box, text width=22mm, below=6mm of task] (job) {job table\\{\scriptsize user: split key}};
+\node[box, text width=40mm, below=6mm of mm, xshift=-10mm, fill=black!10] (feat) {10 features, label, start time\\{\scriptsize no clipping in the build}};
+\draw[arr] (task) -- node[lbl, above] {job, task} (inst);
+\draw[arr] (inst) -- node[lbl, above] {machine, $t_0$} (mm);
+\draw[arr] (mm) -- node[lbl, above] {machine} (spec);
+\draw[arr] (task) -- (job);
+\draw[arr] (inst.south) |- (feat.west);
+\draw[arr] (spec.south) |- (feat.east);
+% ---------------------------------------------------------------- the window on a time axis
+\begin{scope}[xshift=153mm, yshift=4mm]
+  \draw[-{Stealth[length=2mm]}, black!70] (0,-6mm) -- (62mm,-6mm) node[right, lbl] {time};
+  \fill[black!8] (14mm,-14mm) rectangle (44mm,10mm);
+  \draw[black!60, dashed] (14mm,-14mm) -- (14mm,10mm) node[above, lbl] {$t_0-1\,$h};
+  \draw[black!80, thick] (44mm,-14mm) -- (44mm,10mm) node[above, lbl] {$t_0$ (task start)};
+  % metric rows plotted at their end time
+  \foreach \x/\kind in {8/out, 20/in, 27/in, 33/own, 39/in, 44/edge, 52/out} {
+    \ifthenelse{\equal{\kind}{in}}{\fill[black!85] (\x mm,0) circle (1.3mm);}{}
+    \ifthenelse{\equal{\kind}{out}}{\draw[black!60] (\x mm,0) circle (1.3mm);}{}
+    \ifthenelse{\equal{\kind}{edge}}{\draw[black!60] (\x mm,0) circle (1.3mm);}{}
+    \ifthenelse{\equal{\kind}{own}}{\draw[black!80, thick] (\x mm-1.2mm,-1.2mm) -- (\x mm+1.2mm,1.2mm) (\x mm-1.2mm,1.2mm) -- (\x mm+1.2mm,-1.2mm);}{}
+  }
+  \node[lbl, anchor=north west] at (0mm,-15mm) {\tikz\fill[black!85] (0,0) circle (1.1mm); other job, ended in window: averaged\quad
+     \tikz\draw[black!80, thick] (-1mm,-1mm) -- (1mm,1mm) (-1mm,1mm) -- (1mm,-1mm); task's own job: excluded};
+  \node[lbl, anchor=north west] at (0mm,-20mm) {\tikz\draw[black!60] (0,0) circle (1.1mm); ended before the window or at/after $t_0$: excluded};
+\end{scope}
+\end{tikzpicture}}
+\caption{Left: the join path from the raw tables to the feature matrix. The user joins only as a split key. Right: the leak-free window. For a task that starts at $t_0$, the five telemetry features average the machine-metric rows of other jobs' workers on the task's machine that ended in $[t_0-1\,\mathrm{h},\, t_0)$; rows of the task's own job and rows ending at or after $t_0$ are never used.}
+\label{fig:pipeline}
+\end{\pipelinefig}

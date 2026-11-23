@@ -1,0 +1,7 @@
+# the app (tested on these versions; older Streamlit lacks keyed tabs and stable selectbox state)
+streamlit>=1.64,<2
+plotly>=7.1
+numpy>=1.26
+# export_demo.py only (already in the repo's requirements.txt)
+pandas
+scikit-learn

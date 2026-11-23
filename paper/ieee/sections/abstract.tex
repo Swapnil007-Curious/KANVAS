@@ -1,0 +1,7 @@
+\begin{abstract}
+Failure predictors for shared GPU clusters are often evaluated on random task-level splits. We audit that practice on the Alibaba PAI 2020 trace with an additive Kolmogorov-Arnold model (\kaam{}) whose ten B-spline curves are its complete explanation. Ten leak-free features are built for every labelled task, of which \V{data.full.tasks} (\V{data.full.share}) pass the filters, and under four protocols fixed before any test label was read we compare \kaam{} with logistic regression, an MLP, LightGBM and, on an earlier sample, two Explainable Boosting Machines. On random splits LightGBM leads (\V{full.random.lgbm.auc} ROC-AUC against \V{full.random.kaam.auc}), but \V{rf.full.dup.random.min} of random-split test tasks duplicate a training task exactly. With users held out the lead vanishes and no model is clearly best (\V{full.gnou.min} to \V{full.gnou.max} on the folds without the dominant user). On a time-ordered split every model scores \V{full.time.minauc} to \V{full.time.maxauc}, even on known users. \kaam{}'s curves and exact contributions expose a one-core rule learned from one user who submits \V{users.full.u1.failshare} of all failures; without that user, one-core tasks fail about as often as others. The features rank tasks well only for users and periods seen in training.
+\end{abstract}
+
+\begin{IEEEkeywords}
+GPU clusters, failure prediction, interpretable machine learning, Kolmogorov-Arnold networks, shortcut learning, evaluation
+\end{IEEEkeywords}

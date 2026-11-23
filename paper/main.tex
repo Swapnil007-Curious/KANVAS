@@ -1,0 +1,67 @@
+% KANVAS, full version. Build from paper/: tectonic main.tex (see paper/README.md).
+% Every number in the text is a macro \V{key} from tables/numbers.tex, written by
+% scripts/paper_tables.py from the result files; do not type numbers by hand.
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{ifthen}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,decorations.pathreplacing}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\usepackage[hidelinks]{hyperref}
+% PDF metadata: the title and the author only.
+\hypersetup{pdftitle={KANVAS: Auditing Shortcut Learning in GPU Job Failure Prediction with Additive Kolmogorov-Arnold Models},
+  pdfauthor={Swapnil Shukla}, pdfsubject={}, pdfkeywords={}, pdfcreator={}, pdfproducer={}}
+
+\input{macros.tex}
+\input{tables/numbers.tex}
+
+% Generated tables state \TabCaption{label}{title}{notes} after \begin{table} and \TabNotes after the
+% tabular. This version prints "title. notes" as one caption below the table; the IEEE version puts
+% the title above the table and the notes below it.
+\makeatletter
+\newcommand{\TabCaption}[3]{\def\tab@label{#1}\def\tab@title{#2}\def\tab@notes{#3}}
+\newcommand{\TabNotes}{\caption{\tab@title.\ifx\tab@notes\@empty\else\space\tab@notes\fi}\label{\tab@label}}
+\makeatother
+\newcommand{\SecRef}[1]{Section~\ref{#1}}
+\newcommand{\pipelinefig}{figure}% the IEEE version sets the diagram across both columns
+\newcommand{\ExtRef}[2]{#1~\ref{#2}}
+
+\title{KANVAS: Auditing Shortcut Learning in GPU Job Failure Prediction with Additive Kolmogorov-Arnold Models}
+\author{Swapnil Shukla\\Independent Researcher, India\\\texttt{swapnil.shukla.usa@gmail.com}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/data}
+\input{sections/model}
+\input{sections/protocols}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
+\input{sections/acknowledgment}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

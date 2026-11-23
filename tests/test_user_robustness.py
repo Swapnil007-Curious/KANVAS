@@ -19,7 +19,7 @@ from kanvas.robustness import (PROPORTIONS, ROLES, choose_partition, comparison_
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "raw"
 LARGE_CSV = ROOT / "data" / "processed" / "kanvas_features_large.csv"
-PUBLICATION_DIR = ROOT / "data" / "processed" / "publication"
+PUBLICATION_DIR = ROOT / "data" / "processed" / "publication" / "v1"  # the v1 files, kept unchanged
 PUBLICATION_FILES = ["kanvas_feature_matrix.csv", "kanvas_phi_curves.csv", "kanvas_benchmark_results.csv"]
 
 MINIMUM_MATCH_RATE = 0.90

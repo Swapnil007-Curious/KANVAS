@@ -1,0 +1,66 @@
+\section{Deviations from the protocol}
+\label{app:deviations}
+
+The protocol file was written after the datasets were built and before any model was trained on them. Four changes were made afterwards. All four were made before the first read of a test label, and each was recorded in the protocol file with its time and reason; the protocol hash stored with every test access is the hash of the file with all four entries.
+
+\begin{enumerate}
+\item \textbf{Early stopping on validation ROC-AUC.} The protocol specified early stopping on validation log loss. Under the time-ordered split the validation failure rate is \V{full.split.time.t.rateval} against \V{full.split.time.t.ratetrain} in training, so an almost untrained network, which predicts about one half for every task, had a lower validation log loss than a trained one. On the original sample all five MLP seeds of the time-ordered split stopped after the first epoch, and one \kaam{} seed did the same; on the full random split two of five MLP seeds reached the former cap of \V{model.oldmaxepochs} epochs. Early stopping for \kaam{}, the MLP and LightGBM now monitors validation ROC-AUC, the selection metric, and the epoch cap of the networks is \V{model.maxepochs}. Every fit made under the old rule was set aside and refitted.
+\item \textbf{One seed for both EBMs on the full trace.} With four runner processes sharing two physical cores, one additive EBM fit on a full training split took more than twenty minutes, and five seeds on the thirteen full-trace splits would have added about twenty hours. Both EBMs use seed~0 on the full trace; the original sample measures their seed variation.
+\item \textbf{One seed for the EBM with interactions outside the random splits of the original sample.} For the same reason, the EBM with interactions uses five seeds on the five random splits of the original sample and seed~0 under its other protocols. The time-ordered split of the original sample had already started its five seeds and keeps them.
+\item \textbf{No EBMs under the protocols on the full trace.} Even with one seed, an additive EBM fit with the package defaults on a full training split (about \V{full.split.random.s42.ntrain} tasks) used more than two hours of CPU time without finishing, so the planned full-trace EBM fits would have taken about sixty hours. On the full trace only the additive EBM of the canonical split is fitted, for the comparison of shape functions; the EBM comparisons under every protocol use the original sample, where both EBMs were fitted on every split.
+\end{enumerate}
+
+\section{Phase log}
+\label{app:phases}
+
+Table~\ref{tab:phases} lists the phases of the project. Phases one to seven are those of the first version; each was frozen before the next began. The present study adds phases eight to twelve.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Phases of the project. The first seven phases produced the first version; the last five produced this one.}
+\label{tab:phases}
+\begin{tabular}{@{}rp{3.6cm}p{8.6cm}@{}}
+\toprule
+Phase & Data & Content \\
+\midrule
+1 & synthetic, three features & the architecture recovers known curve shapes \\
+2 & \V{v1.dev.tasks} tasks & first training on the trace; the worker-keyed join is found to leak \\
+3 & \V{v1.dev.tasks} tasks & smoothness penalty, early stopping and decision threshold \\
+4 & \V{v1.dev.tasks} tasks & logistic regression and MLP baselines, SHAP agreement \\
+5 & \V{data.orig.tasks} tasks & scale-up, seed and split variance, benchmark, published datasets \\
+6 & \V{data.lb.0p5.v1rows} to \V{data.lb.6.v1rows} tasks & lookback ablation and four case audits \\
+7 & \V{data.orig.tasks} tasks & one user-grouped partition \\
+\midrule
+8 & every labelled task & leak fix (clipping and scaling fitted per training split); full-trace build of \V{data.full.tasks} tasks in \V{data.build.minutes} minutes; checks against the first version \\
+9 & both datasets & protocol file written before any model was trained \\
+10 & both datasets & every model fitted on every split; the three deviations \\
+11 & both datasets & test labels read through the logged function (\V{access.n} reads); statistics, interpretability, lookback ablation \\
+12 & both datasets & tables, figures and every number generated from the result files; claims audit; independent review \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Hyperparameters}
+\label{app:hyper}
+
+Fixed settings: \kaam{} with \V{model.knots} interior knots, cubic splines, SiLU base term, Adam at learning rate \V{model.lr}, minibatches of \V{model.batch}, patience \V{model.patience} epochs, at most \V{model.maxepochs} epochs, minimum AUC improvement \V{model.mindelta}. MLP with ReLU units and the same loop. Logistic regression with an L2 penalty and the L-BFGS solver. LightGBM with learning rate \V{model.lgbm.lr}, bagging and feature fractions of \V{model.lgbm.bag} (bagging every round), at most \V{model.lgbm.rounds} rounds and patience \V{model.lgbm.es} rounds on validation ROC-AUC. EBMs at the defaults of InterpretML \V{ebm.version}. Validation grids: $\lambda\in$\V{model.lambdas}; $C$ over \V{model.lr.ngrid} values from \V{model.lr.cmin} to \V{model.lr.cmax}; MLP hidden layers \V{model.mlp.shapes} crossed with learning rates \V{model.mlp.lrs}; LightGBM leaves \V{model.lgbm.leaves} crossed with minimum leaf sizes \V{model.lgbm.minleaf}. Table~\ref{tab:hyper} gives the settings chosen on each split.
+
+\input{tables/hyper}
+
+\section{Test-access log}
+\label{app:access}
+
+Test labels can be obtained only through one function, which appends a line to \path{results/test_access_log.jsonl} for every call. The log holds \V{access.n} reads between \V{access.first} and \V{access.last}, all after the last model was fitted, and all with the protocol hash \V{access.sha}. Table~\ref{tab:access} groups them.
+
+\input{tables/access}
+
+\section{Further results}
+\label{app:more}
+
+Table~\ref{tab:comp_full} lists every paired comparison on the full trace, and Tables~\ref{tab:comp_orig}, \ref{tab:calib_orig} and~\ref{tab:grouped_orig} repeat the comparisons, the calibration metrics and the per-fold results on the original sample.
+
+\input{tables/comp_full}
+\input{tables/comp_orig}
+\input{tables/calib_orig}
+\input{tables/grouped_orig}

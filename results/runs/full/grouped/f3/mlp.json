@@ -1,0 +1,149 @@
+{
+ "model": "mlp",
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "grid": [
+  {
+   "hidden": [
+    8,
+    6
+   ],
+   "lr": 0.003
+  },
+  {
+   "hidden": [
+    8,
+    6
+   ],
+   "lr": 0.01
+  },
+  {
+   "hidden": [
+    12
+   ],
+   "lr": 0.003
+  },
+  {
+   "hidden": [
+    12
+   ],
+   "lr": 0.01
+  }
+ ],
+ "grid_val_auc": [
+  0.6042372146106101,
+  0.6185210659729959,
+  0.6278697492637296,
+  0.6325603943482716
+ ],
+ "chosen": {
+  "hidden": [
+   12
+  ],
+  "lr": 0.01
+ },
+ "grid_info": [
+  {
+   "best_epoch": 3,
+   "epochs_run": 13,
+   "early_stopped": true,
+   "best_val_auc": 0.6042372153732906,
+   "seconds": 7.657686400001694,
+   "parameters": 149
+  },
+  {
+   "best_epoch": 1,
+   "epochs_run": 11,
+   "early_stopped": true,
+   "best_val_auc": 0.6185210652103155,
+   "seconds": 7.117959599992901,
+   "parameters": 149
+  },
+  {
+   "best_epoch": 8,
+   "epochs_run": 18,
+   "early_stopped": true,
+   "best_val_auc": 0.6278697485010492,
+   "seconds": 8.590410900003917,
+   "parameters": 145
+  },
+  {
+   "best_epoch": 1,
+   "epochs_run": 11,
+   "early_stopped": true,
+   "best_val_auc": 0.6325603943482716,
+   "seconds": 5.257853499999328,
+   "parameters": 145
+  }
+ ],
+ "val_auc_history_seed0": [
+  0.6325603943482716,
+  0.6213706926750715,
+  0.60100449350591,
+  0.5905862164394202,
+  0.5389637667224253,
+  0.5210511312339168,
+  0.5092212149775753,
+  0.5065462550698574,
+  0.5051083583166102,
+  0.507685892657763,
+  0.5133658822784748
+ ],
+ "per_seed": [
+  {
+   "seed": 0,
+   "val_auc": 0.6325603943482716,
+   "best_epoch": 1,
+   "epochs_run": 11,
+   "early_stopped": true,
+   "best_val_auc": 0.6325603943482716,
+   "seconds": 5.257853499999328,
+   "parameters": 145
+  },
+  {
+   "seed": 1,
+   "val_auc": 0.5803715079438907,
+   "best_epoch": 1,
+   "epochs_run": 11,
+   "early_stopped": true,
+   "best_val_auc": 0.5803715109946126,
+   "seconds": 5.250464699995064,
+   "parameters": 145
+  },
+  {
+   "seed": 2,
+   "val_auc": 0.6103149054904049,
+   "best_epoch": 5,
+   "epochs_run": 15,
+   "early_stopped": true,
+   "best_val_auc": 0.6103149047277244,
+   "seconds": 7.278850700000476,
+   "parameters": 145
+  },
+  {
+   "seed": 3,
+   "val_auc": 0.6135724343029174,
+   "best_epoch": 1,
+   "epochs_run": 11,
+   "early_stopped": true,
+   "best_val_auc": 0.613572432014876,
+   "seconds": 5.330901000001177,
+   "parameters": 145
+  },
+  {
+   "seed": 4,
+   "val_auc": 0.5796610108296112,
+   "best_epoch": 2,
+   "epochs_run": 12,
+   "early_stopped": true,
+   "best_val_auc": 0.5796610100669307,
+   "seconds": 5.75139759999729,
+   "parameters": 145
+  }
+ ]
+}

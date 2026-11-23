@@ -1,0 +1,69 @@
+% KANVAS, IEEE conference version. Build from paper/ieee: tectonic main_ieee.tex (or scripts/build_paper.py).
+% The full version is ../main.tex; this version reuses its generated tables (../tables/*.tex), the number
+% macros (../tables/numbers.tex), the figures and the bibliography. Every number is a macro \V{key}.
+\RequirePackage[T1]{fontenc}% before the class, so that IEEEtran selects Times in T1
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{ifthen}
+\usetikzlibrary{arrows.meta,positioning,fit,calc}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+% PDF metadata: the title and the author only (scripts/build_paper.py also strips the rest).
+\hypersetup{pdftitle={KANVAS: Auditing Shortcut Learning in GPU Job Failure Prediction with Additive Kolmogorov-Arnold Models},
+  pdfauthor={Swapnil Shukla}, pdfsubject={}, pdfkeywords={}, pdfcreator={}}
+\graphicspath{{../}}
+
+% ---------------------------------------------------------------- length controls
+% Optional blocks for fitting a page limit. Set a block to \...false to drop it; the comment gives its size.
+\newif\ifshowpipeline   \showpipelinetrue    % Fig. 1, join path and leak-free window (~1/3 column)
+\newif\ifshowcurves     \showcurvestrue      % KAAM vs EBM shape figure (~1/3 column)
+\newif\ifshowcase       \showcasetrue        % case-audit waterfall (~1/4 page width)
+\newif\ifshowcalib      \showcalibtrue       % calibration sentence block (~6 lines)
+\newif\ifshowlookback   \showlookbackfalse   % lookback ablation paragraph (~5 lines; in the full version)
+
+\input{../macros.tex}
+\input{../tables/numbers.tex}
+
+% Generated tables: IEEE style puts the title above the table and the notes below it.
+\makeatletter
+\newcommand{\TabCaption}[3]{\caption{#2}\label{#1}\def\tab@notes{#3}}
+\newcommand{\TabNotes}{\ifx\tab@notes\@empty\else\par\vspace{3pt}%
+  \begin{minipage}{\linewidth}\scriptsize\tab@notes\end{minipage}\fi}
+\makeatother
+\newcommand{\SecRef}[1]{Section~\ref{#1}}
+\newcommand{\pipelinefig}{figure*}% the diagram is set across both columns
+% Material that only the full version contains (it ships with the code).
+\newcommand{\ExtRef}[2]{the full version}
+
+\begin{document}
+
+\title{KANVAS: Auditing Shortcut Learning in GPU Job Failure Prediction with Additive Kolmogorov-Arnold Models}
+
+\author{\IEEEauthorblockN{Swapnil Shukla}
+\IEEEauthorblockA{\textit{Independent Researcher}\\
+India\\
+swapnil.shukla.usa@gmail.com}}
+
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/data}
+\input{sections/model}
+\input{sections/protocols}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/limitations}
+\input{sections/conclusion}
+\input{../sections/acknowledgment}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references_ieee}
+
+\end{document}

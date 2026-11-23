@@ -1,0 +1,22 @@
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{One trace.} Every result comes from one platform over \V{data.span.days} days, without calendar dates, and the telemetry covers only part of that span. The time-ordered protocol has a single split, so its intervals reflect the resampling of one test period and not the variation between periods.
+
+\paragraph{Neighbour telemetry.} The five machine features describe other jobs on the same machine in the hour before the task started, because the task's own telemetry is recorded almost only when it succeeds. This keeps the features leak-free, but they are a proxy for the conditions the task met.
+
+\paragraph{A selected population.} Requiring recent neighbour telemetry and no missing values keeps \V{data.full.share} of the labelled tasks and raises the failure rate from \V{data.lab.rate} to \V{data.full.rate}. CPU-only tasks and machines with sparse telemetry are under-represented. The results apply to tasks that pass these filters.
+
+\paragraph{The label.} The label follows the trace's status field. The trace does not say whether a \texttt{Terminated} task finished normally or was stopped by its user or the scheduler, and we treat every such task as a non-failure.
+
+\paragraph{First instance only.} For tasks with several instances, only the machine of the first one is described.
+
+\paragraph{Ten features.} The features describe the shape of a request and the recent state of a machine. They contain nothing about the user's code, data or configuration, which earlier studies identify as common causes of failure~\cite{jeon2019philly,zhang2020dlfailures}.
+
+\paragraph{No interactions in \kaam{}.} \kaam{} cannot represent an effect that depends on two features at once. This is the price of reading every feature alone; the gap to LightGBM and to the EBM with pairwise terms measures it on this data.
+
+\paragraph{Correlated features.} The GPU count of a machine and its telemetry move together, so the credit an additive model gives to each of them is not unique; different models can split it differently and all be consistent with the data.
+
+\paragraph{Compute.} All experiments ran on one laptop with \V{data.cpus} logical CPUs. The validation grids are small, the EBMs use package defaults, and on the full trace the EBMs were fitted only on the canonical split; the EBM comparisons under every protocol therefore come from the original sample. The EBM with interactions has one seed outside the random splits of the original sample.
+
+\paragraph{Lookback ablation.} The window comparison uses the original sample, one model and one seed.

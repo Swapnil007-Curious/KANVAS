@@ -1,0 +1,28 @@
+\section{Model}
+\label{sec:model}
+
+\subsection{The Kolmogorov-Arnold additive model}
+For a task with scaled features $x_1,\dots,x_d$ ($d=\V{model.d}$), \kaam{} predicts
+\begin{equation}
+p(\text{fail}\mid x)=\sigma\Big(b+\sum_{i=1}^{d}\phi_i(x_i)\Big),\qquad
+\phi_i(x)=w_i\,\mathrm{SiLU}(x)+\sum_{j}c_{ij}B_j(x),
+\label{eq:kaam}
+\end{equation}
+which is the KAN edge form~\cite{liu2025kan} applied once per feature. The $B_j$ are cubic B-splines~\cite{deboor1978splines} on a clamped uniform knot vector with \V{model.knots} interior knots, extended by \V{model.extend} beyond the unit interval on each side; inputs outside the grid are clamped to it. Each feature has \V{model.nbasis} spline coefficients and one SiLU weight, so the model has \V{model.params} parameters. The ten edge functions are stored in a PyTorch \texttt{ModuleDict} keyed by feature name, and the forward pass passes column $i$ to edge $i$ alone, so no edge can read another feature. A unit test perturbs one input and checks that every other contribution is unchanged. The cost of this structure is that \kaam{} cannot represent interactions between features.
+
+\subsection{Training}
+The loss is binary cross-entropy plus a smoothness penalty on the spline coefficients,
+\begin{equation}
+\mathcal{L}=\mathrm{BCE}+\lambda\sum_{i}\sum_{j}\big(c_{i,j+1}-2c_{i,j}+c_{i,j-1}\big)^2,
+\end{equation}
+which charges curvature and leaves straight segments free, as in P-splines~\cite{eilers1996psplines}. We choose $\lambda$ on the validation split from \V{model.lambdas}. Training uses Adam~\cite{kingma2015adam} with learning rate \V{model.lr} and minibatches of \V{model.batch} tasks. After each epoch the model is scored on the validation split; training stops after \V{model.patience} epochs in which the best validation ROC-AUC has not risen by more than \V{model.mindelta}, and the weights of the best epoch are restored. The cap is \V{model.maxepochs} epochs. The protocol first specified early stopping on validation log loss. We replaced it before any test label was read (Appendix~\ref{app:deviations}): under the time-ordered split the validation failure rate is about three times the training rate, so a barely trained network that predicts about one half everywhere had a lower validation log loss than a trained one, and training stopped after the first epoch. ROC-AUC does not depend on the base rate and is already the selection metric. The first version trained with full batches and a cap of \V{v1.maxepochs} epochs, which every run on its larger sample reached. Here early stopping ended \V{full.train.kaam.allstopped} one of the \V{full.train.kaam.runs} \kaam{} runs on the full trace before the cap, after at most \V{full.train.kaam.maxepochs} epochs.
+
+Because the knots are fixed, each feature's basis values depend only on the input. We evaluate them once per split with the model's own Cox-de~Boor routine, fit the parameters on them and load the result into the standard module, whose forward pass reproduces the training-time output (a unit test checks this).
+
+\subsection{Reading the model}
+The contribution $\phi_i(x_i)$ of each feature is available for every prediction. Only the sum of the offsets of the $\phi_i$ and $b$ is identified, so we centre each contribution on its mean over the training tasks. The centred value reads as the amount, in log-odds, by which this feature makes the task riskier than the average training task. For an additive model these centred values are the interventional SHAP values with the training tasks as background~\cite{lundberg2017shap}, which \SecRef{sec:res-interp} confirms numerically.
+
+\subsection{Baselines}
+All baselines receive the same per-split clipped and scaled inputs. Logistic regression with an L2 penalty is the linear additive floor, with $C$ chosen from \V{model.lr.ngrid} values between \V{model.lr.cmin} and \V{model.lr.cmax}. The multilayer perceptron (MLP) is the parameter-matched black box: ReLU hidden layers of sizes \V{model.mlp.shapes} with \V{model.mlp.params} parameters, trained with the same loop and early stopping as \kaam{} at a learning rate of \V{model.mlp.lrs}. LightGBM~\cite{ke2017lightgbm} is the strong tabular baseline: learning rate \V{model.lgbm.lr}, at most \V{model.lgbm.rounds} rounds with early stopping on validation ROC-AUC after \V{model.lgbm.es} rounds without improvement, and a grid over the number of leaves (\V{model.lgbm.leaves}) and the minimum leaf size (\V{model.lgbm.minleaf}). The Explainable Boosting Machine (EBM) of InterpretML~\cite{nori2019interpretml} enters twice: as the additive peer of \kaam{}, with \texttt{interactions=0}, and with its default pairwise interaction terms~\cite{lou2013ga2m}. Both EBMs keep the package defaults otherwise and are not tuned; their own early stopping uses an internal holdout of the training split.
+
+Every stochastic model is trained with \V{prot.seeds} initialisation seeds per split, except where compute forced fewer. The EBMs are fitted on every split of the original sample, the EBM with interactions with five seeds on the random splits and one seed under the other protocols. On the full trace an EBM fit with the package defaults takes hours of CPU time, so there only the additive EBM of the canonical split is fitted, for the comparison of shape functions (Appendix~\ref{app:deviations}). Logistic regression is deterministic and is fitted once per split.

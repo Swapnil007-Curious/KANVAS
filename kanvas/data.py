@@ -62,8 +62,27 @@ WINDOW_METRICS = {
 INSTANCE_COLS = ["job_name", "task_name", "worker_name", "start_time", "machine"]
 
 
+def clip_all_rows_v1(X, log=None):
+    """v1's clipping: each feature to the 1st/99th percentile of *all* rows of ``X``.
+
+    Fitting the bounds before any split leaks a little information from the
+    future validation and test rows into training. It is kept only so the v1
+    files can be reproduced; v2 uses ``preprocess.fit_preprocessor`` on the
+    training split instead.
+    """
+    X = X.copy()
+    for col in FEATURE_NAMES:
+        lo, hi = X[col].quantile([0.01, 0.99])
+        n_lo, n_hi = int((X[col] < lo).sum()), int((X[col] > hi).sum())
+        X[col] = X[col].clip(lo, hi)
+        if log is not None:
+            log(f"  {col:<16s} [{lo:,.4g}, {hi:,.4g}]  clipped {n_lo:>3,} low + {n_hi:>3,} high "
+                f"= {(n_lo + n_hi) / len(X):.2%} of values")
+    return X
+
+
 def build_kanvas_dataset(raw_dir, sample_n_tasks=5000, lookback_hours=1.0, random_state=42, out_path=None,
-                         chunksize=1_000_000, verbose=True):
+                         chunksize=1_000_000, verbose=True, clip_all_rows=False):
     """Build the KANVAS feature matrix from the raw Alibaba PAI GPU-2020 trace.
 
     Args:
@@ -82,6 +101,9 @@ def build_kanvas_dataset(raw_dir, sample_n_tasks=5000, lookback_hours=1.0, rando
             (instance table ~2 GB, machine_metric ~0.4 GB), which are never
             loaded whole.
         verbose: Print the per-step survival report.
+        clip_all_rows: Reproduce v1 by clipping every feature at the
+            1st/99th percentile of all rows. Off by default since v2: those
+            bounds leak across splits, and clipping now happens per split.
 
     Returns:
         Tuple ``(X, y, feature_ranges)``:
@@ -218,13 +240,14 @@ def build_kanvas_dataset(raw_dir, sample_n_tasks=5000, lookback_hours=1.0, rando
     y = label[~has_nan].astype("int64")
     record("no NaN in the 10 features", y, "NaN in at least one feature")
 
-    log("  clipping to 1st/99th percentile:")
-    for col in FEATURE_NAMES:
-        lo, hi = X[col].quantile([0.01, 0.99])
-        n_lo, n_hi = int((X[col] < lo).sum()), int((X[col] > hi).sum())
-        X[col] = X[col].clip(lo, hi)
-        log(f"  {col:<16s} [{lo:,.4g}, {hi:,.4g}]  clipped {n_lo:>3,} low + {n_hi:>3,} high "
-            f"= {(n_lo + n_hi) / len(X):.2%} of values")
+    if clip_all_rows:
+        # v1 behaviour, kept only to reproduce v1 files: the quantiles are fitted on every row, so they carry
+        # information from the rows that later become validation and test tasks. v2 clips per split, on the
+        # training rows alone (kanvas/preprocess.py).
+        log("  clipping to 1st/99th percentile of ALL rows (v1 behaviour; leaks across splits):")
+        X = clip_all_rows_v1(X, log)
+    else:
+        log("  no clipping here: clipping and scaling are fitted on each training split (kanvas/preprocess.py)")
 
     feature_ranges = {col: (float(X[col].min()), float(X[col].max())) for col in FEATURE_NAMES}
     constant = [col for col, (lo, hi) in feature_ranges.items() if hi <= lo]

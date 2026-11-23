@@ -1,0 +1,38 @@
+\section{Data and the leak-free telemetry window}
+\label{sec:data}
+
+\subsection{The trace and the label}
+We use the Alibaba cluster-trace-gpu-v2020 release~\cite{weng2022mlaas}, distributed under the CC BY 4.0 licence. It covers \V{data.span.days} days of Alibaba's PAI machine-learning platform; timestamps are seconds from an undisclosed origin. The task table holds \V{data.raw.tasks} tasks. We treat \texttt{Failed} as the positive class and \texttt{Terminated} as the negative class and drop the \V{data.raw.unresolved} tasks (\V{data.raw.unresolvedshare}) whose status is \texttt{Running} or \texttt{Waiting}, which leaves \V{data.lab.tasks} labelled tasks with a failure rate of \V{data.lab.rate}. The submitting user comes from the job table and serves only as a split key; it is never a model input and appears in no exported file.
+
+\subsection{Why the task's own telemetry cannot be used}
+The obvious way to attach machine telemetry to a task is to average the telemetry of the worker that ran it over the task's lifetime. In this trace the machine-metric table has rows for \V{data.cov.term} of the instances of terminated tasks and for \V{data.cov.fail} of the instances of failed ones, and \V{data.noend.fail} of failed instances have no end time. A worker-keyed join therefore keeps almost no failures, and a model trained on it would learn that the presence of telemetry implies success. This is a leakage path and a coverage gap at once~\cite{kaufman2012leakage,kapoor2023leakage}.
+
+\subsection{The leak-free window}
+We therefore describe the machine instead of the task. For each task we take the machine of its first instance (earliest start, ties broken by file order) and average the machine-metric rows of \emph{other} jobs' workers on that machine whose end time falls in the hour before the task started. Two rules make the window leak-free: no row that ends at or after the task's start is used, and no row of the task's own job is used (Figure~\ref{fig:pipeline}). The ten features are the four resource requests of the task (\feat{plan_cpu}, \feat{plan_mem}, \feat{plan_gpu}, \feat{inst_num}), the GPU count of the machine (\feat{cap_gpu}) and five window averages (\feat{avg_cpu_usr}, \feat{avg_gpu_util}, \feat{avg_cpu_kernel}, \feat{avg_load_1}, \feat{avg_net_receive}). A task with any missing feature is dropped. The window length is the only free parameter of the build; \SecRef{sec:res-lookback} varies it.
+
+\input{figures/pipeline}
+
+\subsection{The full trace and the original sample}
+The first version of this study built its matrix from a stratified sample of \V{data.v1.sample} labelled tasks and kept the \V{data.orig.tasks} that survived the rules. Here we apply the same rules to every labelled task. Caching the instance table once and computing the windows with vectorised searches makes the build take \V{data.build.minutes} minutes on a laptop with \V{data.ram} of memory. Table~\ref{tab:attrition} and Figure~\ref{fig:attrition} give the attrition: \V{data.full.tasks} tasks survive (\V{data.full.share} of the labelled tasks), with \V{data.full.fail} failures (\V{data.full.rate}) from \V{users.full.users} users. Two steps remove almost all of the lost tasks. At the telemetry step \V{data.tele.nowindow} tasks are lost because no other job's metric row ended on their machine in the window, \V{data.tele.nomachine} because their machine has no telemetry at all, and \V{data.tele.other} because their first instance never started or has no machine. At the last step \V{data.missing.tasks} tasks are lost because a telemetry value is missing. The failure rate rises from \V{data.lab.rate} to \V{data.full.rate} along the way, so the surviving tasks are a selected population. Taking the original \V{data.orig.tasks} tasks from the full build reproduces the first version's matrix value for value before clipping (largest relative difference \V{data.v1.maxrel}), and the same holds for its four other lookback windows. We keep those tasks as the \emph{original sample}, so every protocol can be compared with the first version.
+
+\input{tables/attrition}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/attrition.pdf}
+\caption{Attrition of the full trace at a one-hour lookback: tasks remaining after each step, with the failure rate among them.}
+\label{fig:attrition}
+\end{figure}
+
+\subsection{Clipping and scaling per split}
+The first version clipped every feature at its 1st and 99th percentiles over all rows before splitting, so the clip bounds carried information from the rows that later formed the validation and test sets. In this version the build returns raw values, and each protocol fits the clip bounds and the min-max scaling on its training split alone and applies them unchanged to the validation and test splits. A unit test moves every test row to an extreme value and checks that no fitted constant changes. All models receive identical inputs.
+
+\subsection{Who submits the failures}
+Failures are concentrated in a few users (Figure~\ref{fig:concentration}). In the full trace the largest user, User~1, submits \V{users.full.u1.taskshare} of the tasks and \V{users.full.u1.failshare} of the failures, with a failure rate of \V{users.full.u1.rate}. User~4, fourth by task count, submits \V{users.full.u4.taskshare} of the tasks with a failure rate of \V{users.full.u4.rate}. Together the two hold \V{users.full.u14.failshare} of all failures, and the ten users with the most failures hold \V{users.full.top10.failshare}. The original sample has the same structure (User~1: \V{users.orig.u1.taskshare} of the tasks, \V{users.orig.u1.failshare} of the failures). A random task-level split therefore places most of these users' tasks on both sides of the split.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/concentration.pdf}
+\caption{Share of all failures (vermillion) and of all tasks (blue) held by the $k$ users with the most failures or the most tasks; full trace solid, original sample dashed. The horizontal axis is logarithmic.}
+\label{fig:concentration}
+\end{figure}

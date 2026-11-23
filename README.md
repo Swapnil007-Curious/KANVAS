@@ -1,76 +1,112 @@
 # KANVAS
 
-*KANVAS: Auditable Job Failure Prediction in GPU Clusters with an Additive Kolmogorov-Arnold Model*
+*KANVAS: Auditing Shortcut Learning in GPU Job Failure Prediction with Additive Kolmogorov-Arnold Models*
 
-KANVAS predicts whether a job on a shared GPU cluster will fail and shows the reason as one readable curve per input. Trained on Alibaba's public 2020 GPU trace, it matches a black-box network on a random split, then reveals its strongest signal largely tracked one heavy user.
+KANVAS predicts whether a task on a shared GPU cluster will fail, from ten leak-free features, and shows the reason
+as one readable curve per feature. This repository holds the second version of the study: the whole labelled
+Alibaba PAI 2020 trace instead of a sample, four evaluation protocols (random, time-ordered, user-grouped and
+leave-dominant-user-out), five baselines (logistic regression, a parameter-matched MLP, LightGBM and two
+Explainable Boosting Machines), paired-bootstrap statistics with Holm correction, and a full and an IEEE
+conference version of the paper.
 
-- Live demo: https://kanvas.streamlit.app
+- Paper: `paper/main.pdf` (full version) and `paper/ieee/main_ieee.pdf` (IEEE conference version)
+- Live demo (first-version model): https://kanvas.streamlit.app, code in `app/`
 - Code: https://github.com/Swapnil007-Curious/KANVAS
-- Paper: coming soon
-- Kaggle notebooks: coming soon
 - Author: Swapnil Shukla, Independent Researcher, India
 
-![The learned plan_cpu curve under a random task-level split and under a user-grouped split](figures/phase7/plan_cpu_curve_overlay.png)
+## Results (test ROC-AUC)
 
-The model's curve for requested CPU (`plan_cpu`, 100 = 1 core). Trained on a random split (blue), it pushes risk up sharply for one-core requests. With users kept apart between train and test (orange), most of that rise disappears.
+Full trace, 539,816 tasks (the EBMs take hours per fit at this size and were fitted on the original sample only):
 
-## Results (18,890 tasks, 1-hour leak-free telemetry lookback)
+| Model | Random | Time, all | Time, known users | Time, new users | User-grouped | Without User 1 | Without Users 1, 4 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| KAAM | 0.766 | 0.594 | 0.596 | 0.466 | 0.641 | 0.703 | 0.672 |
+| Logistic regression | 0.732 | 0.576 | 0.580 | 0.462 | 0.600 | 0.656 | 0.630 |
+| MLP | 0.804 | 0.596 | 0.599 | 0.482 | 0.637 | 0.721 | 0.698 |
+| LightGBM | 0.900 | 0.599 | 0.599 | 0.534 | 0.566 | 0.845 | 0.805 |
 
-| Model | Parameters | Test AUC | AUC 95% CI | F1 | Brier |
-|---|---:|---:|---|---:|---:|
-| Logistic regression | 11 | 0.7346 | [0.713, 0.757] | 0.496 | 0.168 |
-| KAAM | 151 | 0.7520 | [0.731, 0.774] | 0.575 | 0.153 |
-| MLP (8,6) | 149 | 0.7558 | [0.734, 0.777] | 0.573 | 0.154 |
+Original sample, the 18,890 tasks of the first version:
 
-Generated from `data/processed/publication/kanvas_benchmark_results.csv` (random task-level split, seed 42).
+| Model | Random | Time, all | Time, known users | Time, new users | User-grouped | Without User 1 | Without Users 1, 4 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| KAAM | 0.744 | 0.595 | 0.603 | 0.515 | 0.620 | 0.698 | 0.627 |
+| Logistic regression | 0.723 | 0.588 | 0.589 | 0.565 | 0.561 | 0.662 | 0.602 |
+| MLP | 0.722 | 0.523 | 0.533 | 0.548 | 0.540 | 0.681 | 0.531 |
+| LightGBM | 0.810 | 0.619 | 0.620 | 0.552 | 0.502 | 0.756 | 0.673 |
+| EBM, additive | 0.756 | 0.595 | 0.596 | 0.533 | 0.489 | 0.722 | 0.646 |
+| EBM, pairwise | 0.803 | 0.573 | 0.565 | 0.539 | 0.504 | 0.752 | 0.685 |
 
-- KAAM vs MLP: -0.0038 AUC, paired bootstrap 95% CI includes 0. The interpretability cost is not measurable at this sample size.
-- KAAM vs logistic regression: +0.0174 AUC, CI excludes 0.
-- KAAM per-feature importance agrees with exact SHAP on the MLP: Spearman rho = 0.745 (n = 2,834).
-- Initialization variance (std 0.0001) is far smaller than split variance (std 0.0104).
+Generated from `results/analysis/*/model_ci.csv`; 95% intervals, paired comparisons with Holm correction, PR-AUC,
+Brier score and calibration are in the paper and in `data/processed/publication/`.
 
-Under a user-grouped split all three models fall below chance. See the limitations section.
+- On random splits the models with interactions lead (LightGBM +0.134 AUC over KAAM on the full trace).
+- In each random split of the full trace about 29% of the test tasks have an exact copy of all ten features in training.
+- With users held out that lead disappears and no model is clearly best (0.553 to 0.624 on the four user-grouped folds without the dominant user).
+- On the last 15% of the trace by start time every model scores about 0.58 to 0.60, even on known users.
+- KAAM's curves and exact per-task contributions trace the random-split signal to a one-core rule learned from one
+  user, which disappears when that user is removed.
 
-## What it is
+## Limitation (read this first)
 
-KANVAS stands for Kolmogorov-Arnold Network Verification and Analysis Suite. Its model, KAAM (Kolmogorov-Arnold Additive Model), predicts GPU cluster task failure from scheduling and machine-telemetry features. It is benchmarked against logistic regression and a parameter-matched MLP on the Alibaba Cluster Trace GPU 2020 dataset.
+**Do not use the model for new users.** The features predict failures best for users whose earlier tasks are in
+the training data. For users a model has never seen, every model in the study, readable or not, does far worse
+(user-grouped ROC-AUC 0.57 to 0.64 on the full trace, close to chance on some folds), and accuracy also drops on a
+later period of the trace. The random-split scores above describe neither case. One user submits 31% of the tasks and 55% of the
+failures. See Section 6 of the paper.
 
-KAAM gives each of 10 input features its own learnable B-spline edge and sums the results:
+## What KAAM is
+
+KAAM (Kolmogorov-Arnold Additive Model) gives each of the 10 input features its own learnable B-spline edge and
+sums the results:
 
     risk = sigmoid( sum_i phi_i(x_i) + bias ),   phi_i(x) = w_i * SiLU(x) + sum_j c_ij * B_j(x)
 
-Features never interact. A prediction is fully decomposed into 10 per-feature contributions, and each phi_i can be plotted as a curve. The model has 151 parameters (140 spline coefficients, 10 SiLU weights, 1 bias). Feature decoupling is enforced structurally with a PyTorch `ModuleDict` and checked by unit test.
-
-## Limitations (read this)
-
-**The result does not generalize across users.** One user accounts for 31% of tasks and 54% of failures. When the split is grouped by user, all three models fall to chance: KAAM 0.4535 +/- 0.0418, logistic regression 0.4193, MLP 0.4025. The learned signal partly reflects who submitted the job, not just what the job requests. The random-split AUCs above should be read with that in mind. Details in `notebooks/07_user_grouped_robustness.ipynb`.
-
-Other constraints: one trace, one cluster, binary label (Failed vs Terminated), two originally planned features replaced because of data problems (see the paper).
+Features never interact, so every prediction splits exactly into 10 contributions, and each phi_i can be plotted
+as a curve. The model has 151 parameters. Feature decoupling is enforced structurally with a PyTorch `ModuleDict`
+and checked by a unit test.
 
 ## Repository layout
 
-    kanvas/        model, data pipeline, training, baselines, SHAP, robustness code
-    notebooks/     01 toy demo -> 07 user-grouped robustness, run in order
-    tests/         47 pytest tests (decoupling, leak checks, split integrity, export audit)
-    figures/       all figures, by phase
-    models/        kaam_canonical.pt (split seed 42, init seed 0, test AUC 0.7520)
-    data/processed/publication/   identifier-stripped feature matrix, phi curves, benchmark table, data dictionary
+    kanvas/            model, data pipeline, full-trace build, per-split preprocessing, protocols, models, metrics
+    scripts/           build_full_trace.py, run_experiments.py, analyze.py, interpret_v2.py, lookback_v2.py,
+                       export_publication.py, paper_tables.py, paper_figures.py, paper_claims.py, build_paper.py
+    paper/             PROTOCOL.md (written before any test access), main.tex, ieee/main_ieee.tex, sections/,
+                       tables/ and figures/ (generated), CLAIMS.md (audit), REVIEW.md (independent review)
+    results/           data facts, attrition, run outputs, analyses, test-access log
+    data/processed/publication/   identifier-free exports and data dictionary (v1 files in v1/)
+    notebooks/         the first version's notebooks 01 to 07
+    app/               Streamlit demo (first-version model)
+    tests/             pytest suite
 
 ## Reproduce
 
     pip install -r requirements.txt
-    pytest
+    pytest -m "not slow"
 
-The raw trace is not included (about 1.4 GB). Download `cluster-trace-gpu-v2020` from https://github.com/alibaba/clusterdata, extract it to `ALIBABA-CLUSTER-TRACE-GPU-v2020/`, then run notebooks 02 onward. The published feature matrix in `data/processed/publication/` lets you skip the pipeline and go straight to modeling.
+The raw trace is not included (about 1.4 GB). Download `cluster-trace-gpu-v2020` from
+https://github.com/alibaba/clusterdata and extract the five tables used here into `data/raw/`. Then:
+
+    python scripts/build_full_trace.py          # full-trace datasets at five lookback windows
+    python scripts/data_facts.py
+    python scripts/run_experiments.py --dataset original
+    python scripts/run_experiments.py --dataset full --protocols random,time,grouped,louo --queue   # one or more workers
+    python scripts/analyze.py --dataset full
+    python scripts/analyze.py --dataset original
+    python scripts/interpret_v2.py
+    python scripts/lookback_v2.py
+    python scripts/export_publication.py
+    python scripts/paper_tables.py && python scripts/paper_figures.py && python scripts/paper_claims.py
+    python scripts/build_paper.py
+
+The evaluation protocol was written before any model was trained on the new data, and test labels are read only
+through `kanvas/testaccess.py`, which logs every access in `results/test_access_log.jsonl`. Four deviations, all
+made before the first test access, are listed in `paper/PROTOCOL.md`.
 
 ## Data
 
-Derived from the Alibaba Cluster Trace GPU 2020 dataset (Weng et al., "MLaaS in the Wild: Workload Analysis and Scheduling in Large-Scale Heterogeneous GPU Clusters", NSDI 2022). User and job identifiers are removed from every exported file, and a test enforces it. Follow the original dataset's terms of use.
-
-## References
-
-- Liu et al., "KAN: Kolmogorov-Arnold Networks", 2024. arXiv:2404.19756
-- Weng et al., NSDI 2022 (dataset)
+Derived from the Alibaba cluster-trace-gpu-v2020 dataset (CC BY 4.0; Weng et al., "MLaaS in the Wild: Workload
+Analysis and Scheduling in Large-Scale Heterogeneous GPU Clusters", NSDI 2022). User and job identifiers are
+removed from every exported file, and a test enforces it.
 
 ## Related projects
 

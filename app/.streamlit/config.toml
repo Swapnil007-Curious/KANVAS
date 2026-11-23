@@ -1,0 +1,74 @@
+[theme]
+base = "dark"
+# Monochrome chrome: the only hues on the page are the two data colours (ember raises risk, glacier lowers it).
+primaryColor = "#E9EBEE"
+backgroundColor = "#0D0F13"
+secondaryBackgroundColor = "#171A21"
+textColor = "#E9EBEE"
+redColor = "#FF6A55"
+blueColor = "#5BA8FF"
+borderColor = "#232831"
+showWidgetBorder = true
+showSidebarBorder = true
+baseRadius = "10px"
+buttonRadius = "10px"
+baseFontSize = 15
+font = "Mona Sans, sans-serif"
+headingFont = "Source Serif 4, serif"
+codeFont = "IBM Plex Mono, monospace"
+dataframeBorderColor = "#232831"
+dataframeHeaderBackgroundColor = "#14171D"
+
+[[theme.fontFaces]]
+family = "Mona Sans"
+url = "app/static/fonts/MonaSans-Variable.woff2"
+weight = "200 900"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Source Serif 4"
+url = "app/static/fonts/SourceSerif4-Variable.woff2"
+weight = "200 900"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Source Serif 4"
+url = "app/static/fonts/SourceSerif4-Italic-Variable.woff2"
+weight = "200 900"
+style = "italic"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/fonts/IBMPlexMono-400.woff2"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/fonts/IBMPlexMono-500.woff2"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/fonts/IBMPlexMono-600.woff2"
+weight = "600"
+style = "normal"
+
+[theme.sidebar]
+# heavier, darker material for the structural region (inputs); content sits on the lighter canvas
+backgroundColor = "#08090C"
+secondaryBackgroundColor = "#14171D"
+borderColor = "#1E222A"
+
+[client]
+toolbarMode = "viewer"      # no Deploy button or dev menu in the recording
+showErrorDetails = "full"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
+runOnSave = false
+enableStaticServing = true  # serves ./static, so the fonts work offline

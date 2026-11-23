@@ -1,0 +1,7 @@
+{
+ "tasks": 40,
+ "background": 100,
+ "coalitions": 1024,
+ "max_abs_diff_shap_vs_centred_curves": 1.5864178459779055e-07,
+ "max_abs_explain_sum_minus_logit": 2.384185791015625e-07
+}

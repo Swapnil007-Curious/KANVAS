@@ -1,0 +1,50 @@
+{
+ "model": "ebm_int",
+ "seeds": [
+  0
+ ],
+ "grid": [],
+ "chosen": {
+  "interactions": "default"
+ },
+ "per_seed": [
+  {
+   "seed": 0,
+   "val_auc": 0.5829472981558778,
+   "seconds": 713.9834904000018,
+   "terms": 40,
+   "interaction_terms": [
+    "plan_cpu & plan_mem",
+    "plan_cpu & plan_gpu",
+    "plan_cpu & inst_num",
+    "plan_cpu & avg_cpu_usr",
+    "plan_cpu & avg_gpu_util",
+    "plan_cpu & avg_cpu_kernel",
+    "plan_cpu & avg_load_1",
+    "plan_cpu & cap_gpu",
+    "plan_cpu & avg_net_receive",
+    "plan_mem & plan_gpu",
+    "plan_mem & inst_num",
+    "plan_mem & avg_cpu_usr",
+    "plan_mem & avg_gpu_util",
+    "plan_mem & avg_cpu_kernel",
+    "plan_mem & cap_gpu",
+    "plan_mem & avg_net_receive",
+    "plan_gpu & inst_num",
+    "plan_gpu & avg_cpu_usr",
+    "plan_gpu & avg_gpu_util",
+    "plan_gpu & avg_cpu_kernel",
+    "plan_gpu & avg_load_1",
+    "plan_gpu & cap_gpu",
+    "plan_gpu & avg_net_receive",
+    "inst_num & avg_cpu_usr",
+    "inst_num & avg_cpu_kernel",
+    "inst_num & avg_load_1",
+    "avg_cpu_usr & avg_gpu_util",
+    "avg_cpu_usr & avg_net_receive",
+    "avg_gpu_util & avg_net_receive",
+    "avg_cpu_kernel & avg_load_1"
+   ]
+  }
+ ]
+}

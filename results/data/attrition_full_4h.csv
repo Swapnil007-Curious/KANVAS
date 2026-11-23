@@ -1,0 +1,7 @@
+stage,tasks,failure_rate,reason,dropped: first instance has no machine,dropped: first instance never started (NaN start_time),dropped: assigned machine has no machine_metric rows,dropped: no other job's worker ended on the machine in the lookback window,dropped: CPU-only (plan_gpu missing),missing: plan_cpu,missing: plan_mem,missing: plan_gpu,missing: inst_num,missing: avg_cpu_usr,missing: avg_gpu_util,missing: avg_cpu_kernel,missing: avg_load_1,missing: cap_gpu,missing: avg_net_receive
+raw pai_task_table rows,1261050,,,,,,,,,,,,,,,,,
+labelled (Failed or Terminated),1141835,0.2248678661978307,status Running or Waiting,,,,,,,,,,,,,,,
+first instance found,1141835,0.2248678661978307,no instance row,,,,,,,,,,,,,,,
+telemetry in 4 h lookback,846966,0.2583822727240527,no metric row in the window,1.0,31.0,43537.0,251300.0,,,,,,,,,,,
+machine in machine_spec,846966,0.2583822727240527,machine missing from machine_spec,,,,,,,,,,,,,,,
+no missing feature,568627,0.2725354230453355,a feature is missing,,,,,59085.0,0.0,0.0,59085.0,0.0,95204.0,92314.0,107190.0,109113.0,0.0,81428.0

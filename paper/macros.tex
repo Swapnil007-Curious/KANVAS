@@ -1,0 +1,10 @@
+% Macros shared by the full version (main.tex) and the IEEE version (ieee/main_ieee.tex).
+% Every number in the text is a macro \V{key} from tables/numbers.tex, written by
+% scripts/paper_tables.py from the result files; do not type numbers by hand.
+\makeatletter
+\newcommand{\V}[1]{\ifcsname v@#1\endcsname\csname v@#1\endcsname\else
+  \PackageError{numbers}{Undefined number key #1 (rerun scripts/paper_tables.py)}{}\textbf{??#1??}\fi}
+\makeatother
+\newcommand{\kaam}{KAAM}
+\newcommand{\feat}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\cmd}[1]{\texttt{#1}}

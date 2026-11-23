@@ -1,0 +1,90 @@
+{
+  "build seconds": 162.5,
+  "lookbacks": {
+    "0.5": {
+      "tasks": 509296,
+      "failures": 138191,
+      "failure rate": 0.27133729697464737,
+      "users": 1158,
+      "tasks without user": 0,
+      "start_time min": 2352751.0,
+      "start_time max": 6450997.0,
+      "v1 check": {
+        "v1 rows": 17751,
+        "v1 rows missing from the v2 build": 0,
+        "labels identical": true,
+        "max relative feature difference": 3.1476659949397123e-16
+      }
+    },
+    "1": {
+      "tasks": 539816,
+      "failures": 147873,
+      "failure rate": 0.27393222875942913,
+      "users": 1159,
+      "tasks without user": 0,
+      "start_time min": 2352751.0,
+      "start_time max": 6450997.0,
+      "v1 check": {
+        "v1 rows": 18890,
+        "v1 rows missing from the v2 build": 0,
+        "labels identical": true,
+        "max relative feature difference": 3.1539238109814422e-16
+      },
+      "v1 lookback-1h check": {
+        "v1 rows": 18890,
+        "v1 rows missing from the v2 build": 0,
+        "labels identical": true,
+        "max relative feature difference": 3.1539238109814422e-16
+      }
+    },
+    "2": {
+      "tasks": 557294,
+      "failures": 152479,
+      "failure rate": 0.27360603200465106,
+      "users": 1165,
+      "tasks without user": 0,
+      "start_time min": 2352751.0,
+      "start_time max": 6450997.0,
+      "v1 check": {
+        "v1 rows": 19524,
+        "v1 rows missing from the v2 build": 0,
+        "labels identical": true,
+        "max relative feature difference": 3.1464408871086523e-16
+      }
+    },
+    "4": {
+      "tasks": 568627,
+      "failures": 154971,
+      "failure rate": 0.2725354230453355,
+      "users": 1168,
+      "tasks without user": 0,
+      "start_time min": 2352751.0,
+      "start_time max": 6450997.0,
+      "v1 check": {
+        "v1 rows": 19911,
+        "v1 rows missing from the v2 build": 0,
+        "labels identical": true,
+        "max relative feature difference": 3.1519413041921947e-16
+      }
+    },
+    "6": {
+      "tasks": 572959,
+      "failures": 155963,
+      "failure rate": 0.2722062137081362,
+      "users": 1169,
+      "tasks without user": 0,
+      "start_time min": 2352751.0,
+      "start_time max": 6450997.0,
+      "v1 check": {
+        "v1 rows": 20067,
+        "v1 rows missing from the v2 build": 0,
+        "labels identical": true,
+        "max relative feature difference": 3.106637193850822e-16
+      }
+    }
+  },
+  "v1 40,000-task sample rebuilt": {
+    "sample size": 40000,
+    "v1 18,890 tasks inside the rebuilt sample": 18890
+  }
+}
