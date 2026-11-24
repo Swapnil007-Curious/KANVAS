@@ -374,7 +374,7 @@ None.
 
 | check | passes | detail |
 |---|---|---|
-| first test access after the last model fit | yes | last fit 2026-11-23 16:19:26 UTC, first access 2026-11-23 16:20:23 UTC |
+| first test access after the last model fit | n/a | not checkable from file times in a git checkout: all 157 run files are tracked and identical to commit 9fbe4c0 (2026-11-24T03:21:30+05:30), so their times record the checkout; first access 2026-11-23 16:20:23 UTC |
 | every test access logged under the current PROTOCOL.md | yes | sha256 39b91d83e9f3 |
 
 ## Factual (non-numeric) claims

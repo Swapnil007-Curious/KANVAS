@@ -6,7 +6,8 @@ KANVAS predicts whether a job on a shared GPU cluster will fail and explains eac
 
 - Live demo: https://kanvas.streamlit.app (serves the first-version model; code in `app/`)
 - Code: https://github.com/Swapnil007-Curious/KANVAS
-- Paper: coming soon
+- Paper (PDF): [paper/main.pdf](paper/main.pdf)
+- IEEE version: [paper/ieee/main_ieee.pdf](paper/ieee/main_ieee.pdf)
 - Kaggle notebooks: coming soon
 - Author: Swapnil Shukla, Independent Researcher, India
 
@@ -137,7 +138,7 @@ removed from every exported file, and a test enforces it.
 
 ## Related projects
 
-- VeriDex is a free assistant that searches a fixed library of open textbooks and Indian statutes before answering, cites its passages for every sentence and labels answers from outside the library ([live demo](https://swapnil007-curious.github.io/VeriDex/), [code](https://github.com/Swapnil007-Curious/VeriDex)).
+- VeriDex is a free assistant that searches a fixed library of open textbooks and Indian statutes before answering. Every answer cites its passages, and a checker confirms that each sentence carries a citation ([live demo](https://swapnil007-curious.github.io/VeriDex/), [code](https://github.com/Swapnil007-Curious/VeriDex)).
 - ManuVox recognises 250 isolated American Sign Language signs from a webcam and speaks the result as a short English sentence, running entirely in the browser so video never leaves the device ([live demo](https://swapnil007-curious.github.io/ManuVox/), [code](https://github.com/Swapnil007-Curious/ManuVox)).
 
 ## License
