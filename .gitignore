@@ -61,3 +61,6 @@ paper/*.out
 paper/ieee/references_ieee.bib
 # the first version's PDF (kept locally; superseded by paper/main.pdf)
 KANVAS_paper.pdf
+
+# Kaggle notebook series: local staging (raw trace copies, executed working dirs)
+kaggle/_stage/

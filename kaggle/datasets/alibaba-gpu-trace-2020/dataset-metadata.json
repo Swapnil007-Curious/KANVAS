@@ -1,0 +1,498 @@
+{
+  "title": "Alibaba PAI GPU cluster trace 2020",
+  "id": "swapnilshukla007/alibaba-gpu-trace-2020",
+  "subtitle": "Jobs, tasks, instances and telemetry of a 6,742-GPU ML cluster (CC BY 4.0)",
+  "description": "# Alibaba PAI GPU cluster trace 2020 (cluster-trace-gpu-v2020)\n\nThis dataset is a copy of Alibaba's public GPU cluster trace from 2020, plus one derived table used by the KANVAS\nnotebooks. The trace covers about two months (July and August 2020) of a production machine learning cluster in\nAlibaba PAI with 1,897 machines and 6,742 GPUs. It records every job, task and instance, the resources each task\nasked for, per-instance resource sensors and per-machine telemetry.\n\nSource: https://github.com/alibaba/clusterdata/tree/master/cluster-trace-gpu-v2020\n\nThis upload is not made, reviewed or endorsed by Alibaba.\n\n## Licence and attribution\n\nThe trace is released by Alibaba under the Creative Commons Attribution 4.0 International licence (CC BY 4.0).\nThe full licence text is in `LICENSE.txt`, copied from the trace's own LICENSE file. The derived table in this\ndataset is released under the same licence. The trace's repository README also asks that the data be used for\nresearch or study, and encourages users to cite the paper below.\n\nPlease cite the trace paper when you use this data:\n\n> Qizhen Weng, Wencong Xiao, Yinghao Yu, Wei Wang, Cheng Wang, Jian He, Yong Li, Liping Zhang, Wei Lin and Yu Ding.\n> MLaaS in the Wild: Workload Analysis and Scheduling in Large-Scale Heterogeneous GPU Clusters.\n> 19th USENIX Symposium on Networked Systems Design and Implementation (NSDI 22), 2022.\n\n```\n@inproceedings{weng2022mlaas,\n  title     = {{MLaaS} in the Wild: Workload Analysis and Scheduling in Large-Scale Heterogeneous {GPU} Clusters},\n  author    = {Weng, Qizhen and Xiao, Wencong and Yu, Yinghao and Wang, Wei and Wang, Cheng and He, Jian and\n               Li, Yong and Zhang, Liping and Lin, Wei and Ding, Yu},\n  booktitle = {19th USENIX Symposium on Networked Systems Design and Implementation (NSDI 22)},\n  year      = {2022}\n}\n```\n\n## Changes from the official release\n\n- The official CSV files have no header row; the column names ship as separate `.header` files. Each CSV here has\n  its header line prepended and is otherwise byte-identical to the official file. Removing the first line gives a\n  file whose sha256 matches the official README; both checksums are in `SHA256SUMS.txt`.\n- `kanvas_tasks_1h.parquet` is new (see below). It was built from an older copy of the trace whose\n  `pai_machine_metric.csv` printed some floats with fewer digits. Parsed, those values differ from the official ones\n  by at most one unit in the last place (relative difference below 4e-16, in under 1% of rows), so a rebuild from\n  the files here gives the same features to about 1e-15 relative.\n\n## Files\n\n| File | Rows | What one row is |\n|---|---:|---|\n| `pai_job_table.csv` | 1,055,501 | a job: submitting user, status, submission and completion time |\n| `pai_task_table.csv` | 1,261,050 | a task of a job: status, launch and end time, requested CPU, memory, GPU and instance count, GPU type |\n| `pai_instance_table.csv` | 7,522,002 | an instance (one running copy of a task): status, launch and end time, machine |\n| `pai_sensor_table.csv` | 3,033,232 | per-instance resource use averaged over its life: CPU, GPU utilisation, memory, GPU memory, I/O |\n| `pai_group_tag_table.csv` | 1,055,032 | per-job tags: requested GPU type spec, a group tag for repeated jobs, workload name (set for about 10%) |\n| `pai_machine_spec.csv` | 1,897 | a machine: GPU type, CPU cores, memory, GPU count |\n| `pai_machine_metric.csv` | 2,009,423 | machine-level telemetry averaged over one instance's life on that machine |\n| `kanvas_tasks_1h.parquet` | 539,816 | a labelled GPU task with the ten KANVAS features (derived) |\n\nUnits, from the official README: `plan_cpu` is CPU in percent of a core (600 = 6 cores), `plan_mem` is GB,\n`plan_gpu` and `gpu_wrk_util` are GPU in percent of one GPU (50 = half a GPU), `cap_gpu` is the number of GPUs in a\nmachine. Times are seconds, shifted by a constant to hide the real dates; time of day and day of week are kept.\n`gpu_type` MISC means older GPUs such as K40m, K80 and M60.\n\n## The derived table `kanvas_tasks_1h.parquet`\n\nOne row per task whose status is Failed (label 1) or Terminated (label 0) and for which every feature exists.\nIt was built with `kanvas/fulltrace.py` from the KANVAS repository (https://github.com/Swapnil007-Curious/KANVAS,\ncommit 9fbe4c0) and is the table the KANVAS paper calls the full trace. Failure rate 27.39%.\n\n| Column | Meaning |\n|---|---|\n| `job_name`, `task_name` | keys into the raw tables |\n| `plan_cpu`, `plan_mem`, `plan_gpu`, `inst_num` | the task's requests, from `pai_task_table` |\n| `cap_gpu` | GPU count of the machine that ran the task's first instance, from `pai_machine_spec` |\n| `avg_cpu_usr`, `avg_gpu_util`, `avg_cpu_kernel`, `avg_load_1`, `avg_net_receive` | means of `machine_cpu_usr`, `machine_gpu`, `machine_cpu_kernel`, `machine_load_1` and `machine_net_receive` over `pai_machine_metric` rows of other jobs that ended on that machine in the hour before the task's first instance started |\n| `label` | 1 = Failed, 0 = Terminated |\n| `start_time` | launch time of the task's first instance (trace seconds) |\n| `user_rank` | the submitting user as an integer: 1 is the user with the most tasks in this table, 2 the next, and so on |\n| `machine` | machine of the first instance |\n| `n_metric_rows` | number of telemetry rows averaged |\n\nThe telemetry features look only at other jobs and only at the hour before the task started, so they carry no\ninformation from the task's own run. Tasks with no telemetry row in that hour, CPU-only tasks and tasks with a\nmissing value were dropped.\n\nA warning for anyone modelling this table: one user (`user_rank` 1) submits 31% of the tasks and 55% of the\nfailures, and random task-level splits overstate how well a model does on users it has not seen. Evaluate with\nusers held out or with a time-ordered split.\n\n## Notebooks that use this dataset\n\nA five-part series built from the KANVAS project: a trace EDA, an analysis of idle GPUs, a LightGBM failure\nbaseline with SHAP, a from-scratch Kolmogorov-Arnold additive model, and a comparison of its spline curves with\nSHAP. Code: https://github.com/Swapnil007-Curious/KANVAS\n",
+  "isPrivate": true,
+  "licenses": [
+    {
+      "name": "CC-BY-4.0"
+    }
+  ],
+  "keywords": [
+    "computer science",
+    "tabular",
+    "time series analysis",
+    "data analytics"
+  ],
+  "collaborators": [],
+  "data": [],
+  "resources": [
+    {
+      "path": "pai_job_table.csv",
+      "description": "One row per job: user, status, submission and completion time.",
+      "schema": {
+        "fields": [
+          {
+            "name": "job_name",
+            "description": "job id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "inst_id",
+            "description": "job instance id; one per job (hash)",
+            "type": "string"
+          },
+          {
+            "name": "user",
+            "description": "submitting user (hash)",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "description": "Terminated, Failed, Running or Waiting",
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "description": "submission time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "end_time",
+            "description": "completion time, trace seconds",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "path": "pai_task_table.csv",
+      "description": "One row per task of a job: status, times and resource requests.",
+      "schema": {
+        "fields": [
+          {
+            "name": "job_name",
+            "description": "job id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "task_name",
+            "description": "task role, e.g. tensorflow, worker, ps",
+            "type": "string"
+          },
+          {
+            "name": "inst_num",
+            "description": "number of instances requested",
+            "type": "number"
+          },
+          {
+            "name": "status",
+            "description": "Terminated, Failed, Running or Waiting",
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "description": "task launch time (equals the job's submission time), trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "end_time",
+            "description": "task end time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "plan_cpu",
+            "description": "requested CPU in percent of a core (600 = 6 cores)",
+            "type": "number"
+          },
+          {
+            "name": "plan_mem",
+            "description": "requested memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "plan_gpu",
+            "description": "requested GPU per instance in percent of one GPU (50 = half a GPU)",
+            "type": "number"
+          },
+          {
+            "name": "gpu_type",
+            "description": "GPU model of the machine the task ran on; MISC = older GPUs",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "path": "pai_instance_table.csv",
+      "description": "One row per instance (running copy of a task): status, times, machine.",
+      "schema": {
+        "fields": [
+          {
+            "name": "job_name",
+            "description": "job id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "task_name",
+            "description": "task role",
+            "type": "string"
+          },
+          {
+            "name": "inst_name",
+            "description": "instance name (hash)",
+            "type": "string"
+          },
+          {
+            "name": "worker_name",
+            "description": "worker id; joins to sensor and machine_metric (hash)",
+            "type": "string"
+          },
+          {
+            "name": "inst_id",
+            "description": "job instance id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "description": "instance status",
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "description": "instance launch time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "end_time",
+            "description": "instance end time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "machine",
+            "description": "machine id (hash)",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "path": "pai_sensor_table.csv",
+      "description": "Per-instance resource use averaged over the instance's life (max_* columns are maxima).",
+      "schema": {
+        "fields": [
+          {
+            "name": "job_name",
+            "description": "job id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "task_name",
+            "description": "task role",
+            "type": "string"
+          },
+          {
+            "name": "worker_name",
+            "description": "worker id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "inst_id",
+            "description": "job instance id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "machine",
+            "description": "machine id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "gpu_name",
+            "description": "GPU device on the machine, e.g. /dev/nvidia0",
+            "type": "string"
+          },
+          {
+            "name": "cpu_usage",
+            "description": "CPU used in percent of a core",
+            "type": "number"
+          },
+          {
+            "name": "gpu_wrk_util",
+            "description": "GPU used in percent of one GPU",
+            "type": "number"
+          },
+          {
+            "name": "avg_mem",
+            "description": "mean main memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "max_mem",
+            "description": "peak main memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "avg_gpu_wrk_mem",
+            "description": "mean GPU memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "max_gpu_wrk_mem",
+            "description": "peak GPU memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "read",
+            "description": "network input, bytes",
+            "type": "number"
+          },
+          {
+            "name": "write",
+            "description": "network output, bytes",
+            "type": "number"
+          },
+          {
+            "name": "read_count",
+            "description": "number of reads",
+            "type": "number"
+          },
+          {
+            "name": "write_count",
+            "description": "number of writes",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "path": "pai_group_tag_table.csv",
+      "description": "Per-job tags: requested GPU type spec, repeated-job group, workload name.",
+      "schema": {
+        "fields": [
+          {
+            "name": "inst_id",
+            "description": "job instance id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "user",
+            "description": "user (hash)",
+            "type": "string"
+          },
+          {
+            "name": "gpu_type_spec",
+            "description": "GPU type the job asked for; empty if none",
+            "type": "string"
+          },
+          {
+            "name": "group",
+            "description": "semantic tag; jobs with the same tag are repeats (hash)",
+            "type": "string"
+          },
+          {
+            "name": "workload",
+            "description": "workload name, e.g. bert, ctr; set for about 10% of jobs",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "path": "pai_machine_spec.csv",
+      "description": "One row per machine: GPU type and capacity.",
+      "schema": {
+        "fields": [
+          {
+            "name": "machine",
+            "description": "machine id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "gpu_type",
+            "description": "GPU model, or CPU for CPU-only machines",
+            "type": "string"
+          },
+          {
+            "name": "cap_cpu",
+            "description": "CPU cores",
+            "type": "number"
+          },
+          {
+            "name": "cap_mem",
+            "description": "memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "cap_gpu",
+            "description": "number of GPUs",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "path": "pai_machine_metric.csv",
+      "description": "Machine-level telemetry averaged over one instance's life on that machine.",
+      "schema": {
+        "fields": [
+          {
+            "name": "worker_name",
+            "description": "worker id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "machine",
+            "description": "machine id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "description": "instance launch time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "end_time",
+            "description": "instance end time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "machine_cpu_iowait",
+            "description": "CPU iowait",
+            "type": "number"
+          },
+          {
+            "name": "machine_cpu_kernel",
+            "description": "CPU kernel time",
+            "type": "number"
+          },
+          {
+            "name": "machine_cpu_usr",
+            "description": "CPU user time",
+            "type": "number"
+          },
+          {
+            "name": "machine_gpu",
+            "description": "machine GPU utilisation summed over GPUs (100 = one busy GPU)",
+            "type": "number"
+          },
+          {
+            "name": "machine_load_1",
+            "description": "1-minute load average",
+            "type": "number"
+          },
+          {
+            "name": "machine_net_receive",
+            "description": "network bytes received",
+            "type": "number"
+          },
+          {
+            "name": "machine_num_worker",
+            "description": "workers on the machine",
+            "type": "number"
+          },
+          {
+            "name": "machine_cpu",
+            "description": "CPU utilisation",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "path": "kanvas_tasks_1h.parquet",
+      "description": "Derived: 539,816 labelled GPU tasks with the ten KANVAS features (see README).",
+      "schema": {
+        "fields": [
+          {
+            "name": "job_name",
+            "description": "job id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "task_name",
+            "description": "task role",
+            "type": "string"
+          },
+          {
+            "name": "plan_cpu",
+            "description": "requested CPU",
+            "type": "number"
+          },
+          {
+            "name": "plan_mem",
+            "description": "requested memory, GB",
+            "type": "number"
+          },
+          {
+            "name": "plan_gpu",
+            "description": "requested GPU per instance",
+            "type": "number"
+          },
+          {
+            "name": "inst_num",
+            "description": "instances requested",
+            "type": "number"
+          },
+          {
+            "name": "avg_cpu_usr",
+            "description": "machine CPU user time, mean over other jobs in the previous hour",
+            "type": "number"
+          },
+          {
+            "name": "avg_gpu_util",
+            "description": "machine GPU utilisation, same window",
+            "type": "number"
+          },
+          {
+            "name": "avg_cpu_kernel",
+            "description": "machine CPU kernel time, same window",
+            "type": "number"
+          },
+          {
+            "name": "avg_load_1",
+            "description": "machine load, same window",
+            "type": "number"
+          },
+          {
+            "name": "cap_gpu",
+            "description": "GPUs on the machine",
+            "type": "number"
+          },
+          {
+            "name": "avg_net_receive",
+            "description": "machine network bytes received, same window",
+            "type": "number"
+          },
+          {
+            "name": "label",
+            "description": "1 = Failed, 0 = Terminated",
+            "type": "integer"
+          },
+          {
+            "name": "start_time",
+            "description": "first instance launch time, trace seconds",
+            "type": "number"
+          },
+          {
+            "name": "user_rank",
+            "description": "user as an integer, 1 = most tasks",
+            "type": "integer"
+          },
+          {
+            "name": "machine",
+            "description": "machine id (hash)",
+            "type": "string"
+          },
+          {
+            "name": "n_metric_rows",
+            "description": "telemetry rows averaged",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    {
+      "path": "LICENSE.txt",
+      "description": "Creative Commons Attribution 4.0 International licence text, from the trace's LICENSE file."
+    },
+    {
+      "path": "README.md",
+      "description": "Source, attribution, citation, changes from the official release and column notes."
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "description": "Checksums of each CSV and of the official headerless file it contains."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "01": {
+    "notebook": "01-pai-trace-eda",
+    "seconds": 24.0,
+    "fast": false,
+    "python": "3.11.9",
+    "cpu_threads": 4,
+    "date": "2026-11-24"
+  },
+  "02": {
+    "notebook": "02-idle-gpus",
+    "seconds": 20.5,
+    "fast": false,
+    "python": "3.11.9",
+    "cpu_threads": 4,
+    "date": "2026-11-24"
+  },
+  "03": {
+    "notebook": "03-failure-lightgbm-shap",
+    "seconds": 508.1,
+    "fast": false,
+    "python": "3.11.9",
+    "cpu_threads": 4,
+    "date": "2026-11-24"
+  },
+  "04": {
+    "notebook": "04-kaam-from-scratch",
+    "seconds": 212.7,
+    "fast": false,
+    "python": "3.11.9",
+    "cpu_threads": 4,
+    "date": "2026-11-24"
+  },
+  "05": {
+    "notebook": "05-splines-vs-shap",
+    "seconds": 362.3,
+    "fast": false,
+    "python": "3.11.9",
+    "cpu_threads": 4,
+    "date": "2026-11-24"
+  }
+}

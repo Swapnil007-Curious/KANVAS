@@ -1,0 +1,163 @@
+#%% code
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+torch.set_num_threads(N_THREADS)
+NUM_KNOTS = 10      # interior knots per feature
+SPLINE_ORDER = 3    # cubic B-splines
+GRID_EXTEND = 0.1   # margin beyond [0, 1] so slightly out-of-range inputs stay on the grid
+BATCH_SIZE = 2048
+LEARNING_RATE = 0.01
+MAX_EPOCHS = 30 if FAST else 500
+PATIENCE = 10       # epochs without a validation AUC gain before stopping
+MIN_DELTA = 1e-4    # smallest validation AUC gain that counts as progress
+
+
+def set_seed(seed):
+    """Seed numpy and torch."""
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
+def clamped_knots(x_min=0.0, x_max=1.0, num_knots=NUM_KNOTS, order=SPLINE_ORDER, extend=GRID_EXTEND):
+    """Uniform clamped knot vector: the two end knots repeated order + 1 times, num_knots evenly spaced inside."""
+    low, high = x_min - extend, x_max + extend
+    interior = torch.linspace(low, high, num_knots + 2)[1:-1]
+    return torch.cat([torch.full((order + 1,), low), interior, torch.full((order + 1,), high)])
+
+
+def bspline_basis(x, knots, order=SPLINE_ORDER):
+    """All B-spline basis functions at x via the Cox-de Boor recursion; returns (len(x), n_basis).
+
+    Degree 0: N_i0(x) = 1 on [t_i, t_i+1), else 0. Degree p: a weighted blend of two degree p-1 neighbours,
+    N_ip = (x - t_i)/(t_i+p - t_i) N_i,p-1 + (t_i+p+1 - x)/(t_i+p+1 - t_i+1) N_i+1,p-1, with 0/0 taken as 0.
+    """
+    t = knots
+    xu = x.unsqueeze(-1)
+    bases = ((xu >= t[:-1]) & (xu < t[1:])).to(x.dtype)
+    at_top = x == t[-1]  # the right end belongs to the last non-empty span
+    if at_top.any():
+        bases = bases.clone()
+        last = int(torch.nonzero(t[1:] > t[:-1])[-1])
+        bases[at_top, last] = 1.0
+    for p in range(1, order + 1):
+        left_den = t[p:-1] - t[:-(p + 1)]
+        right_den = t[p + 1:] - t[1:-p]
+        left = torch.where(left_den == 0, torch.zeros_like(left_den), 1.0 / left_den)
+        right = torch.where(right_den == 0, torch.zeros_like(right_den), 1.0 / right_den)
+        bases = (xu - t[:-(p + 1)]) * left * bases[:, :-1] + (t[p + 1:] - xu) * right * bases[:, 1:]
+    return bases
+
+
+class BSplineEdge(nn.Module):
+    """One learnable function of one feature: phi(x) = w * SiLU(x) + sum_j c_j B_j(x)."""
+
+    def __init__(self, x_min=0.0, x_max=1.0):
+        super().__init__()
+        self.register_buffer("knots", clamped_knots(x_min, x_max))
+        self.n_basis = len(self.knots) - SPLINE_ORDER - 1
+        self.spline_weight = nn.Parameter(torch.randn(self.n_basis) * 0.1)  # small start: nearly flat curves
+        self.base_weight = nn.Parameter(torch.randn(()) * 0.1)
+
+    def forward(self, x):
+        x = torch.clamp(x, float(self.knots[0]), float(self.knots[-1]))
+        return bspline_basis(x, self.knots) @ self.spline_weight + self.base_weight * F.silu(x)
+
+
+class KAAM(nn.Module):
+    """Kolmogorov-Arnold additive model: risk = sigmoid(sum_i phi_i(x_i) + bias)."""
+
+    def __init__(self, feature_names):
+        super().__init__()
+        self.feature_names = list(feature_names)
+        # one edge per feature, each fed exactly one input column, so features can never interact
+        self.edges = nn.ModuleDict({name: BSplineEdge() for name in self.feature_names})
+        self.bias = nn.Parameter(torch.zeros(()))
+
+    def contributions(self, x):
+        """Per-feature contributions phi_i(x_i), shape (batch, n_features), in log-odds."""
+        return torch.stack([self.edges[n](x[:, i]) for i, n in enumerate(self.feature_names)], dim=1)
+
+    def forward(self, x):
+        return torch.sigmoid(self.contributions(x).sum(dim=1) + self.bias)
+
+
+def design(x, knots):
+    """Precomputed inputs for fast training: basis values (n, f, n_basis) and SiLU values (n, f)."""
+    x = torch.from_numpy(np.array(x, dtype=np.float32))  # a writable copy (pandas may hand out read-only arrays)
+    xc = torch.clamp(x, float(knots[0]), float(knots[-1]))
+    basis = torch.stack([bspline_basis(xc[:, i], knots) for i in range(x.shape[1])], dim=1)
+    return basis, F.silu(xc)
+
+
+def roughness(coef):
+    """Sum of squared second differences of the spline coefficients (0 for straight lines)."""
+    return ((coef[:, 2:] - 2 * coef[:, 1:-1] + coef[:, :-2]) ** 2).sum()
+
+
+def fit_kaam(d_train, y_train, d_val, y_val, lam, seed=0):
+    """Fit KAAM on precomputed designs with Adam, early stopping on validation AUC; return (model, history)."""
+    set_seed(seed)
+    model = KAAM(FEATURES)
+    coef = nn.Parameter(torch.stack([model.edges[n].spline_weight.detach() for n in FEATURES]).clone())
+    base = nn.Parameter(torch.stack([model.edges[n].base_weight.detach() for n in FEATURES]).clone())
+    bias = nn.Parameter(torch.zeros(()))
+    params = [coef, base, bias]
+
+    def logit(d, idx=None):
+        b, s = d if idx is None else (d[0][idx], d[1][idx])
+        return torch.einsum("nfk,fk->n", b, coef) + (s * base).sum(1) + bias
+
+    opt = torch.optim.Adam(params, lr=LEARNING_RATE)
+    gen = torch.Generator().manual_seed(seed)
+    yt = torch.as_tensor(np.asarray(y_train, dtype=np.float32))
+    n = len(yt)
+    best, best_state, since, history = -np.inf, None, 0, []
+    for epoch in range(1, MAX_EPOCHS + 1):
+        perm = torch.randperm(n, generator=gen)
+        for start in range(0, n, BATCH_SIZE):
+            idx = perm[start:start + BATCH_SIZE]
+            loss = F.binary_cross_entropy_with_logits(logit(d_train, idx), yt[idx])
+            if lam > 0:
+                loss = loss + lam * roughness(coef)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+        with torch.no_grad():
+            auc = roc_auc_score(y_val, logit(d_val).numpy())
+        history.append(auc)
+        if auc > best + MIN_DELTA:
+            best, since, best_state = auc, 0, [p.detach().clone() for p in params]
+        else:
+            since += 1
+            if since >= PATIENCE:
+                break
+    with torch.no_grad():  # restore the best epoch and copy it into a standard KAAM module
+        for i, name in enumerate(FEATURES):
+            model.edges[name].spline_weight.copy_(best_state[0][i])
+            model.edges[name].base_weight.copy_(best_state[1][i])
+        model.bias.copy_(best_state[2])
+    return model, history
+
+
+def kaam_logit(model, d):
+    """Logits from a fitted KAAM on a precomputed design."""
+    coef = torch.stack([model.edges[n].spline_weight for n in FEATURES])
+    base = torch.stack([model.edges[n].base_weight for n in FEATURES])
+    with torch.no_grad():
+        return (torch.einsum("nfk,fk->n", d[0], coef) + (d[1] * base).sum(1) + model.bias).numpy()
+
+
+def kaam_contributions(model, d):
+    """Per-feature contributions (n, n_features) from a precomputed design."""
+    coef = torch.stack([model.edges[n].spline_weight for n in FEATURES])
+    base = torch.stack([model.edges[n].base_weight for n in FEATURES])
+    with torch.no_grad():
+        return (torch.einsum("nfk,fk->nf", d[0], coef) + d[1] * base).numpy()
+
+
+def shape_curve(model, feature, grid):
+    """phi(feature) on a grid of scaled values."""
+    with torch.no_grad():
+        return model.edges[feature](torch.as_tensor(np.asarray(grid, dtype=np.float32))).numpy()

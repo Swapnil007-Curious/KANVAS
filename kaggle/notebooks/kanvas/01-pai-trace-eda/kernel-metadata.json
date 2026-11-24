@@ -1,0 +1,21 @@
+{
+  "id": "swapnilshukla007/alibaba-pai-gpu-trace-2020-a-complete-eda",
+  "title": "Alibaba PAI GPU trace 2020: a complete EDA",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "swapnilshukla007/alibaba-gpu-trace-2020"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [],
+  "keywords": [
+    "exploratory data analysis",
+    "data visualization"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "swapnilshukla007/predicting-gpu-task-failure-lightgbm-and-shap",
+  "title": "Predicting GPU task failure: LightGBM and SHAP",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "swapnilshukla007/alibaba-gpu-trace-2020"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [],
+  "keywords": [
+    "binary classification",
+    "lightgbm"
+  ]
+}

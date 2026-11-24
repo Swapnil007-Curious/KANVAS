@@ -1,0 +1,117 @@
+#%% code
+import importlib
+import subprocess
+import sys
+
+
+def ensure(package, pip_spec):
+    """Import ``package``; if it is missing, install the pinned ``pip_spec`` (needs internet) and import it."""
+    try:
+        return importlib.import_module(package)
+    except ImportError:
+        subprocess.run([sys.executable, "-m", "pip", "install", "-q", pip_spec], check=True)
+        return importlib.import_module(package)
+
+
+lgb = ensure("lightgbm", "lightgbm==4.7.0")  # preinstalled on Kaggle; the pin is only a fallback
+import sklearn
+from IPython.display import Markdown, display
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import StratifiedGroupKFold, train_test_split
+
+N_THREADS = 4  # Kaggle CPU notebooks have 4 cores; a fixed count keeps LightGBM results reproducible
+FEATURES = ["plan_cpu", "plan_mem", "plan_gpu", "inst_num", "avg_cpu_usr", "avg_gpu_util", "avg_cpu_kernel",
+            "avg_load_1", "cap_gpu", "avg_net_receive"]
+FEATURE_NOTES = {  # where each feature comes from, for labels and tables
+    "plan_cpu": "requested CPU (100 = 1 core)", "plan_mem": "requested memory (GB)",
+    "plan_gpu": "requested GPU per instance (100 = 1 GPU)", "inst_num": "instances requested",
+    "avg_cpu_usr": "machine CPU user time, previous hour", "avg_gpu_util": "machine GPU utilisation, previous hour",
+    "avg_cpu_kernel": "machine CPU kernel time, previous hour", "avg_load_1": "machine load, previous hour",
+    "cap_gpu": "GPUs on the machine", "avg_net_receive": "machine network bytes received, previous hour",
+}
+SPLIT_FRACTIONS = (0.70, 0.15, 0.15)  # train, validation, test
+CLIP_QUANTILES = (0.01, 0.99)         # per-feature clipping, fitted on the training split only
+LR_C_GRID = [0.001, 0.01, 0.1, 1.0, 10.0]  # inverse regularisation strengths for logistic regression
+
+
+def say(text):
+    """Render a line of markdown in the output (used for takeaways that quote numbers computed above)."""
+    display(Markdown(text))
+
+
+def load_tasks():
+    """Load the KANVAS task table: ten features, the failure label, start time and an integer user id."""
+    path = find_data_dir(["kanvas_tasks_1h.parquet"]) / "kanvas_tasks_1h.parquet"
+    df = pd.read_parquet(path)
+    if FAST:
+        df = df.sample(n=100_000, random_state=SEED).sort_index()
+    return df.reset_index(drop=True)
+
+
+def random_split(y, seed=SEED):
+    """Stratified 70/15/15 split: the test part is drawn first, then validation from the rest."""
+    idx = np.arange(len(y))
+    n_test = int(np.ceil(SPLIT_FRACTIONS[2] * len(y)))
+    n_val = int(np.ceil(SPLIT_FRACTIONS[1] * len(y)))
+    rest, test = train_test_split(idx, test_size=n_test, random_state=seed, stratify=y)
+    train, val = train_test_split(rest, test_size=n_val, random_state=seed, stratify=y[rest])
+    return {"train": np.sort(train), "val": np.sort(val), "test": np.sort(test)}
+
+
+def user_grouped_folds(y, users, n_folds=5, seed=0):
+    """Folds where every user's tasks sit in exactly one of train, validation or test."""
+    outer = StratifiedGroupKFold(n_splits=n_folds, shuffle=True, random_state=seed)
+    folds = []
+    for k, (rest, test) in enumerate(outer.split(np.zeros(len(y)), y, users)):
+        inner = StratifiedGroupKFold(n_splits=n_folds, shuffle=True, random_state=k)
+        tr, va = next(inner.split(np.zeros(len(rest)), y[rest], users[rest]))
+        folds.append({"train": np.sort(rest[tr]), "val": np.sort(rest[va]), "test": np.sort(test)})
+    return folds
+
+
+class Scaler:
+    """Clip each feature to training quantiles, then min-max scale with the training range."""
+
+    def fit(self, X):
+        lo, hi = X.quantile(CLIP_QUANTILES[0]), X.quantile(CLIP_QUANTILES[1])
+        clipped = X.clip(lo, hi, axis=1)
+        self.lo, self.hi = lo, hi
+        self.min, self.max = clipped.min(), clipped.max()
+        self.max = self.max.where(self.max > self.min, self.min + 1.0)
+        return self
+
+    def transform(self, X):
+        return ((X.clip(self.lo, self.hi, axis=1) - self.min) / (self.max - self.min)).astype("float32")
+
+    def to_raw(self, feature, scaled):
+        return self.min[feature] + np.asarray(scaled) * (self.max[feature] - self.min[feature])
+
+    def to_scaled(self, feature, raw):
+        return (np.asarray(raw, dtype=float) - self.min[feature]) / (self.max[feature] - self.min[feature])
+
+
+def fit_lr(Xtr, ytr, Xva, yva):
+    """Logistic regression with C chosen on validation AUC; return (model, chosen C)."""
+    best = None
+    for c in LR_C_GRID:
+        m = LogisticRegression(C=c, max_iter=5_000).fit(Xtr, ytr)
+        auc = roc_auc_score(yva, m.predict_proba(Xva)[:, 1])
+        if best is None or auc > best[0]:
+            best = (auc, c, m)
+    return best[2], best[1]
+
+
+def bootstrap_auc(y, p, n_boot=1000, seed=SEED):
+    """Test ROC-AUC with a 95% percentile bootstrap interval over test tasks."""
+    rng = np.random.default_rng(seed)
+    y, p = np.asarray(y), np.asarray(p)
+    stats = []
+    for _ in range(n_boot):
+        i = rng.integers(0, len(y), len(y))
+        if y[i].min() != y[i].max():
+            stats.append(roc_auc_score(y[i], p[i]))
+    return roc_auc_score(y, p), np.percentile(stats, 2.5), np.percentile(stats, 97.5)
+
+
+print(f"lightgbm {lgb.__version__}, scikit-learn {sklearn.__version__}")

@@ -1,0 +1,66 @@
+#%% code
+import os
+import time
+import warnings
+from pathlib import Path
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# Paths. On Kaggle the defaults apply; the two environment variables let the same notebook run elsewhere.
+INPUT_ROOT = Path(os.environ.get("KAGGLE_INPUT_ROOT", "/kaggle/input"))
+WORKING = Path(os.environ.get("KAGGLE_WORKING", "/kaggle/working"))
+WORKING.mkdir(parents=True, exist_ok=True)
+
+# FAST = True runs a smaller version for a quick check on a small machine. Kaggle runs use the full data.
+FAST = os.environ.get("KANVAS_FAST", "0") == "1"
+SEED = 42  # one seed for every random choice in the notebook
+
+# Okabe-Ito colours, chosen so the series stay distinct for the common forms of colour blindness.
+BLUE, ORANGE, GREEN, VERMILLION, PURPLE, SKY, YELLOW, BLACK = (
+    "#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#000000")
+PALETTE = [BLUE, ORANGE, GREEN, VERMILLION, PURPLE, SKY, BLACK]
+SEQUENTIAL_CMAP = "cividis"  # one perceptually uniform ramp for heatmaps
+
+mpl.rcParams.update({
+    "figure.dpi": 100, "savefig.dpi": 100, "font.size": 11, "axes.titlesize": 13, "axes.titleweight": "bold",
+    "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "grid.alpha": 0.3,
+    "axes.prop_cycle": mpl.cycler(color=PALETTE), "legend.frameon": False,
+})
+np.random.seed(SEED)
+pd.set_option("display.width", 140)
+pd.set_option("display.max_columns", 30)
+
+
+def find_data_dir(required, root=INPUT_ROOT, max_depth=4):
+    """Return the first folder under ``root`` that contains every file in ``required``.
+
+    Kaggle mounts attached datasets under /kaggle/input, and the exact sub-path has changed over the
+    years, so the notebook searches for the files instead of hard-coding one layout.
+    """
+    root = Path(root)
+    for dirpath, dirnames, filenames in os.walk(root):
+        depth = len(Path(dirpath).relative_to(root).parts)
+        if all(name in filenames for name in required):
+            return Path(dirpath)
+        if depth >= max_depth:
+            dirnames[:] = []
+    raise FileNotFoundError(
+        f"Could not find {list(required)} under {root}. Attach the dataset 'alibaba-gpu-trace-2020' "
+        "(Add Input > Datasets) and run again.")
+
+
+def save_cover(draw, path=None):
+    """Draw a 1280x720 cover image with ``draw(ax)`` and save it as cover.png in the working folder."""
+    path = WORKING / "cover.png" if path is None else path
+    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
+    draw(ax)
+    fig.tight_layout()
+    fig.savefig(path, dpi=100)
+    plt.close(fig)
+    return path
+
+
+print(f"pandas {pd.__version__}, numpy {np.__version__}, matplotlib {mpl.__version__}; FAST = {FAST}")
