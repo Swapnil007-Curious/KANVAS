@@ -1,4 +1,4 @@
-# KANVAS
+# KANVAS - **Kolmogorov-Arnold Network Verification and Analysis Suite**
 
 *KANVAS: Auditing Shortcut Learning in GPU Job Failure Prediction with Additive Kolmogorov-Arnold Models*
 
@@ -105,7 +105,7 @@ and checked by a unit test.
     app/               Streamlit demo (first-version model)
     tests/             pytest suite
 
-## Reproduce
+## Clone
 
     pip install -r requirements.txt
     pytest -m "not slow"
