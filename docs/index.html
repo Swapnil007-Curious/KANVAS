@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>KANVAS: GPU job failure prediction you can read</title>
+<meta name="description" content="A 151-parameter additive model that predicts whether a job on a shared GPU cluster will fail and splits each prediction into one contribution per input. Runs in the browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0b0b'/%3E%3Cpath d='M5 22 C10 22 11 10 16 10 S22 20 27 12' fill='none' stroke='%23e34948' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preload" href="model.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="examples.json" as="fetch" crossorigin="anonymous">
+<link rel="stylesheet" href="style.css">
+<script>try{var t=localStorage.getItem("kanvas-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<script src="kaam.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>KANVAS <small>GPU job failure prediction you can read</small></h1>
+        <p class="lede">Will this job on a shared GPU cluster fail? A 151-parameter additive model, trained on
+          <span data-fill="train_tasks">377,870</span> tasks from Alibaba's 2020 GPU cluster trace, gives a failure
+          probability and splits it exactly into one contribution per input, each read off its own curve.</p>
+      </div>
+      <nav class="links" aria-label="Project links">
+        <a href="https://github.com/Swapnil007-Curious/KANVAS/blob/main/paper/main.pdf">Paper (PDF)</a>
+        <a href="https://github.com/Swapnil007-Curious/KANVAS">Code</a>
+        <button type="button" class="btn" id="theme" aria-live="polite">Theme: auto</button>
+      </nav>
+    </div>
+    <p class="banner" role="note"><strong>Limitation: do not use this model for new users.</strong> It works best
+      for users whose earlier tasks are in its training data. With whole users held out, every model in the study
+      scores far lower (test ROC-AUC 0.57 to 0.64, near chance on some groups of users), and every model scores
+      only about 0.6 on a later period of the trace, even for known users. See the Audit tab.</p>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="tab-predict" aria-controls="panel-predict" aria-selected="true">Predict</button>
+    <button type="button" role="tab" id="tab-curves" aria-controls="panel-curves" aria-selected="false" tabindex="-1">Curves</button>
+    <button type="button" role="tab" id="tab-audit" aria-controls="panel-audit" aria-selected="false" tabindex="-1">Audit</button>
+  </div>
+
+  <p class="status" id="status">Loading the model...</p>
+  <noscript><p class="error">This demo runs the model in your browser and needs JavaScript.</p></noscript>
+
+  <!-- ============================================================ Predict -->
+  <section role="tabpanel" id="panel-predict" aria-labelledby="tab-predict" tabindex="0" hidden>
+    <div class="predict">
+      <form class="card" id="form" novalidate>
+        <h2>The task</h2>
+        <p class="sub">Pick a real test task or set the ten inputs yourself.</p>
+        <div class="example-row">
+          <div class="field">
+            <label for="example">Load example</label>
+            <select id="example"></select>
+          </div>
+          <button type="button" class="btn" id="typical">Typical task</button>
+        </div>
+        <fieldset id="fs-request">
+          <legend>What the task asked for</legend>
+        </fieldset>
+        <fieldset id="fs-machine">
+          <legend>The machine it was placed on</legend>
+          <p class="legend-note">Usage figures average the other jobs that ended on that machine in the hour before
+            the task started, so none of them can see the task itself.</p>
+        </fieldset>
+      </form>
+
+      <div>
+        <section class="card" aria-labelledby="h-risk">
+          <h2 id="h-risk">Failure probability</h2>
+          <div class="risk">
+            <div class="risk-num" id="risk" aria-live="polite" aria-atomic="true">-</div>
+            <div class="risk-label" id="risk-label"></div>
+          </div>
+          <div class="meter" aria-hidden="true">
+            <div class="meter-fill" id="meter"></div>
+            <div class="tick" id="tick-base"><span></span></div>
+            <div class="tick above" id="tick-thr"><span></span></div>
+          </div>
+          <p class="verdict" id="verdict"></p>
+          <p class="truth" id="truth"></p>
+          <p class="equation" id="equation"></p>
+        </section>
+
+        <section class="card" aria-labelledby="h-bars">
+          <div class="bars-head">
+            <h2 id="h-bars">Why: one contribution per input</h2>
+          </div>
+          <p class="sub">Each bar is how far that input moves the failure log-odds away from the average training
+            task. The bars add up exactly to the prediction. Select an input's name to see its curve.</p>
+          <p class="direction" aria-hidden="true"><span class="lo">lowers risk</span><span class="hi">raises risk</span></p>
+          <ol class="bars" id="bars"></ol>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Curves -->
+  <section role="tabpanel" id="panel-curves" aria-labelledby="tab-curves" tabindex="0" hidden>
+    <div class="curves-head">
+      <p>Each curve is one input's learned effect on the failure log-odds, measured against the average training
+        task (the zero line). The dot is the current input. Click or drag on a curve, or focus it and use the arrow
+        keys, to change that input. <span class="now" id="curves-now" aria-live="polite"></span></p>
+      <label class="check"><input type="checkbox" id="shared"> Same vertical scale for all</label>
+    </div>
+    <div class="curve-grid" id="curves"></div>
+    <p class="curves-key">Grey edges mark the outer 5% of training tasks on each side, where the curve rests on
+      less data. The strip along the bottom shows how training tasks are spread. Small circles are the values
+      discrete inputs take in training. Inputs outside the shown range are clipped to its ends before the model
+      sees them.</p>
+  </section>
+
+  <!-- ============================================================ Audit -->
+  <section role="tabpanel" id="panel-audit" aria-labelledby="tab-audit" tabindex="0" hidden>
+    <p class="audit-lead">A random split scatters each user's tasks across training and test, so a model can score
+      well by recognising heavy users it has already seen, while a user-grouped split keeps all of a user's tasks on
+      one side, which is the situation the model faces with a new user.</p>
+    <div class="table-wrap" id="auc-table"></div>
+    <div class="notes" id="audit-notes"></div>
+    <div class="table-wrap" id="fold-table" style="margin-top:1rem"></div>
+  </section>
+</main>
+
+<div class="mini-risk" aria-hidden="true">
+  <span>Failure probability <strong id="mini-risk">-</strong></span>
+  <button type="button" class="btn" id="mini-show" tabindex="-1">Show why</button>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Data: Alibaba cluster-trace-gpu-v2020 (CC BY 4.0; Weng et al., "MLaaS in the Wild", NSDI 2022). The model
+      runs in your browser; nothing you enter is sent anywhere.</p>
+    <p>Model: the canonical KAAM of the paper (full trace, random split 42, seed 0), exported by
+      <code>scripts/export_web.py</code>. Code under the MIT licence.</p>
+  </div>
+</footer>
+</body>
+</html>

@@ -4,7 +4,7 @@
 
 KANVAS predicts whether a job on a shared GPU cluster will fail and explains each prediction as one readable curve per input. Tested on Alibaba's public 2020 GPU trace, it shows that random splits reward models for memorising a few heavy users, and that performance drops sharply for new users.
 
-- Live demo: https://kanvas.streamlit.app (serves the first-version model; code in `app/`)
+- Live demo: https://swapnil007-curious.github.io/KANVAS/ (the paper's canonical full-trace KAAM, running in the browser; source in `docs/`)
 - Code: https://github.com/Swapnil007-Curious/KANVAS
 - Paper (PDF): [paper/main.pdf](paper/main.pdf)
 - IEEE version: [paper/ieee/main_ieee.pdf](paper/ieee/main_ieee.pdf)
@@ -102,7 +102,9 @@ and checked by a unit test.
     data/processed/publication/   identifier-free exports and data dictionary (v1 files in v1/)
     figures/readme/    the figure at the top of this README (generated)
     notebooks/         the first version's notebooks 01 to 07
-    app/               Streamlit demo (first-version model)
+    docs/              the live demo: a static page that runs the canonical KAAM from model.json
+                       (built by scripts/export_web.py, published by .github/workflows/pages.yml)
+    app/               the earlier Streamlit demo of the first-version model (no longer the public link)
     tests/             pytest suite
 
 ## Clone
@@ -125,6 +127,13 @@ https://github.com/alibaba/clusterdata and extract the five tables used here int
     python scripts/paper_tables.py && python scripts/paper_figures.py && python scripts/paper_claims.py
     python scripts/build_paper.py
     python scripts/readme_assets.py             # README figure and tables
+    python scripts/export_web.py                # docs/model.json and docs/examples.json for the demo
+
+The demo needs no raw trace: `scripts/export_web.py` reads only tracked files (the saved run, the published
+feature matrix and the analysis tables) and stops unless the page's arithmetic matches the PyTorch model to 0.001
+in probability on every test task. `pytest tests/test_web_parity.py -s` repeats the check on 1,000 test tasks,
+including the page's own JavaScript run with Node. To view the page locally, run
+`python -m http.server -d docs` and open http://localhost:8000.
 
 The evaluation protocol was written before any model was trained on the new data, and test labels are read only
 through `kanvas/testaccess.py`, which logs every access in `results/test_access_log.jsonl`. Four deviations, all
