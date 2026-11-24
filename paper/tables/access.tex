@@ -3,29 +3,34 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\TabCaption{tab:access}{Test-access log}{Every read of test labels, grouped by dataset, protocol and purpose (time of the first read in each group, UTC). Each entry of \texttt{results/test\_access\_log.jsonl} records the SHA-256 of the protocol file at that moment; all entries carry the same hash.}
-\begin{tabular}{@{}llllrp{5.4cm}@{}}
+\TabCaption{tab:access}{Test-access log}{Every read of test labels, grouped by dataset, protocol and purpose (time of the first read in each group, UTC). Reads: log entries in the group; test tasks: labels read, summed over those entries. Each entry of \texttt{results/test\_access\_log.jsonl} records the SHA-256 of the protocol file at that moment; all entries carry the same hash.}
+\begin{tabular}{@{}llllrrp{4.7cm}@{}}
 \toprule
-First read (UTC) & Data & Protocol & Splits & Test tasks & Purpose \\
+First read (UTC) & Data & Protocol & Splits & Reads & Test tasks & Purpose \\
 \midrule
-2026-11-23 16:20:23 & original & random & s42, s43, s44, s45, s46 & 14,170 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:23 & original & time & t & 2,834 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:23 & original & grouped & f0, f1, f2, f3, f4 & 18,890 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:23 & original & louo & d1, d14 & 3,809 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:24 & full & random & s42, s43, s44, s45, s46 & 404,865 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:24 & full & time & t & 80,973 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:24 & full & grouped & f0, f1, f2, f3, f4 & 539,816 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:24 & full & louo & d1, d14 & 108,874 & score saved test predictions \texttt{analyze.py} \\
-2026-11-23 16:20:55 & lookback-1h & lookback & 1h & 2,834 & lookback ablation \texttt{lookback\_v2.py} \\
-2026-11-23 16:20:55 & lookback-0.5h & lookback & 0.5h & 2,671 & lookback ablation \texttt{lookback\_v2.py} \\
-2026-11-23 16:20:56 & lookback-2h & lookback & 2h & 2,930 & lookback ablation \texttt{lookback\_v2.py} \\
-2026-11-23 16:20:58 & lookback-4h & lookback & 4h & 2,988 & lookback ablation \texttt{lookback\_v2.py} \\
-2026-11-23 16:21:00 & lookback-6h & lookback & 6h & 3,011 & lookback ablation \texttt{lookback\_v2.py} \\
-2026-11-23 16:21:49 & full & random & s42 & 80,973 & case audits on the canonical KAAM \texttt{interpret\_v2.py} \\
-2026-11-23 20:37:37 & full & review & all & 0 & independent review: the reviewer read labels directly from data/processed/v2/full\_1h.parquet for spot checks, outside kanvas/testaccess.py; no model, setting or protocol was changed as a result  \\
-2026-11-23 20:39:02 & full & grouped & f0, f1, f2, f3, f4 & 539,816 & post hoc review analysis \texttt{posthoc\_review.py} \\
-2026-11-23 21:02:50 & full & random & s42, s43, s44, s45, s46 & 404,865 & post hoc review analysis \texttt{posthoc\_review.py} \\
-2026-11-23 21:05:05 & full & louo & d1, d14 & 108,874 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-23 16:20:23 & original & random & s42, s43, s44, s45, s46 & 5 & 14,170 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:23 & original & time & t & 1 & 2,834 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:23 & original & grouped & f0, f1, f2, f3, f4 & 5 & 18,890 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:23 & original & louo & d1, d14 & 2 & 3,809 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:24 & full & random & s42, s43, s44, s45, s46 & 5 & 404,865 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:24 & full & time & t & 1 & 80,973 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:24 & full & grouped & f0, f1, f2, f3, f4 & 5 & 539,816 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:24 & full & louo & d1, d14 & 2 & 108,874 & score saved test predictions \texttt{analyze.py} \\
+2026-11-23 16:20:55 & lookback-1h & lookback & 1h & 1 & 2,834 & lookback ablation \texttt{lookback\_v2.py} \\
+2026-11-23 16:20:55 & lookback-0.5h & lookback & 0.5h & 1 & 2,671 & lookback ablation \texttt{lookback\_v2.py} \\
+2026-11-23 16:20:56 & lookback-2h & lookback & 2h & 1 & 2,930 & lookback ablation \texttt{lookback\_v2.py} \\
+2026-11-23 16:20:58 & lookback-4h & lookback & 4h & 1 & 2,988 & lookback ablation \texttt{lookback\_v2.py} \\
+2026-11-23 16:21:00 & lookback-6h & lookback & 6h & 1 & 3,011 & lookback ablation \texttt{lookback\_v2.py} \\
+2026-11-23 16:21:49 & full & random & s42 & 1 & 80,973 & case audits on the canonical KAAM \texttt{interpret\_v2.py} \\
+2026-11-23 20:37:37 & full & review & all & 1 & 0 & independent review: the reviewer read labels directly from data/processed/v2/full\_1h.parquet for spot checks, outside kanvas/testaccess.py; no model, setting or protocol was changed as a result  \\
+2026-11-23 20:39:02 & full & grouped & f0, f1, f2, f3, f4 & 10 & 1,079,632 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-23 21:02:50 & full & random & s42, s43, s44, s45, s46 & 10 & 809,730 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-23 21:05:05 & full & louo & d1, d14 & 4 & 217,748 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-24 14:55:17 & full & time & t & 1 & 80,973 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-24 14:57:45 & original & grouped & f0, f1, f2, f3, f4 & 5 & 18,890 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-24 14:58:02 & original & random & s42, s43, s44, s45, s46 & 5 & 14,170 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-24 14:58:05 & original & louo & d1, d14 & 2 & 3,809 & post hoc review analysis \texttt{posthoc\_review.py} \\
+2026-11-24 14:58:27 & original & time & t & 1 & 2,834 & post hoc review analysis \texttt{posthoc\_review.py} \\
 \bottomrule
 \end{tabular}
 \TabNotes

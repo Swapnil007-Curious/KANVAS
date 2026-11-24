@@ -1170,15 +1170,17 @@ def access_numbers():
         pur = tex_escape(re.sub(r"\s*\(scripts/[^)]*\)", "", purpose))
         script = re.search(r"scripts/([a-z_0-9]+\.py)", purpose)
         scr = f"\\texttt{{{tex_escape(script.group(1))}}}" if script else ""
+        splits = list(dict.fromkeys(a["splits"]))  # each split once, in first-read order (a rerun reads it again)
         rows.append(f"{a['first'].replace('T', ' ').replace('Z', '')} & {tex_escape(ds)} & {tex_escape(proto)} & "
-                    f"{', '.join(tex_escape(s) for s in a['splits'])} & {fint(a['tasks'])} & {pur} {scr} \\\\")
+                    f"{', '.join(tex_escape(s) for s in splits)} & {fint(a['n'])} & {fint(a['tasks'])} & {pur} {scr} \\\\")
     tbl = ["\\begin{table*}[t]", "\\centering", "\\scriptsize", "\\setlength{\\tabcolsep}{3pt}",
            "\\TabCaption{tab:access}{Test-access log}{Every read of test labels, grouped by dataset, protocol and "
-           "purpose (time of the first read in each group, UTC). Each entry of "
+           "purpose (time of the first read in each group, UTC). Reads: log entries in the group; test tasks: labels "
+           "read, summed over those entries. Each entry of "
            "\\texttt{results/test\\_access\\_log.jsonl} records the SHA-256 of the protocol file at that moment; "
            "all entries carry the same hash.}",
-           "\\begin{tabular}{@{}llllrp{5.4cm}@{}}", "\\toprule",
-           "First read (UTC) & Data & Protocol & Splits & Test tasks & Purpose \\\\", "\\midrule"] + rows + \
+           "\\begin{tabular}{@{}llllrrp{4.7cm}@{}}", "\\toprule",
+           "First read (UTC) & Data & Protocol & Splits & Reads & Test tasks & Purpose \\\\", "\\midrule"] + rows + \
           ["\\bottomrule", "\\end{tabular}", "\\TabNotes", "\\end{table*}", ""]
     write_table("access", "\n".join(tbl))
 

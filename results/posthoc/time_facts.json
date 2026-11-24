@@ -1,0 +1,54 @@
+{
+ "full": {
+  "train": {
+   "user1_share": 0.22243040614389567,
+   "rate": 0.2113075626338089,
+   "rate_without_user1": 0.19197742843431886,
+   "start_min_day": 27.23091435185185,
+   "start_max_day": 64.75167824074074
+  },
+  "val": {
+   "user1_share": 0.7322654744850071,
+   "rate": 0.6788766487180754,
+   "rate_without_user1": 0.12666635914940727,
+   "start_min_day": 64.75167824074074,
+   "start_max_day": 67.6908912037037
+  },
+  "test": {
+   "user1_share": 0.29662974077779014,
+   "rate": 0.16123893149568375,
+   "rate_without_user1": 0.13983214524001827,
+   "start_min_day": 67.6908912037037,
+   "start_max_day": 74.66431712962962
+  },
+  "new_user_tasks": 748,
+  "new_users": 79,
+  "gap_train_to_test_days": 2.939212962962955
+ },
+ "original": {
+  "train": {
+   "user1_share": 0.22037359146940935,
+   "rate": 0.21311351433108977,
+   "rate_without_user1": 0.1938112329032884,
+   "start_min_day": 27.241736111111113,
+   "start_max_day": 64.75913194444445
+  },
+  "val": {
+   "user1_share": 0.7349099894105189,
+   "rate": 0.6667843275679491,
+   "rate_without_user1": 0.11584553928095873,
+   "start_min_day": 64.75982638888888,
+   "start_max_day": 67.70947916666667
+  },
+  "test": {
+   "user1_share": 0.30628087508821455,
+   "rate": 0.17184191954834158,
+   "rate_without_user1": 0.14903357070193285,
+   "start_min_day": 67.70958333333333,
+   "start_max_day": 74.64681712962962
+  },
+  "new_user_tasks": 123,
+  "new_users": 68,
+  "gap_train_to_test_days": 2.9504513888888795
+ }
+}

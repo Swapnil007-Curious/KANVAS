@@ -64,3 +64,5 @@ KANVAS_paper.pdf
 
 # Kaggle notebook series: local staging (raw trace copies, executed working dirs)
 kaggle/_stage/
+# post hoc analysis resume cache (the CSVs and time_facts.json are the outputs)
+results/posthoc/parts/
