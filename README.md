@@ -150,6 +150,15 @@ removed from every exported file, and a test enforces it.
 - VeriDex is a free assistant that searches a fixed library of open textbooks and Indian statutes before answering. Every answer cites its passages, and a checker confirms that each sentence carries a citation ([live demo](https://swapnil007-curious.github.io/VeriDex/), [code](https://github.com/Swapnil007-Curious/VeriDex)).
 - ManuVox recognises 250 isolated American Sign Language signs from a webcam and speaks the result as a short English sentence, running entirely in the browser so video never leaves the device ([live demo](https://swapnil007-curious.github.io/ManuVox/), [code](https://github.com/Swapnil007-Curious/ManuVox)).
 
+## Acknowledgement
+
+Anthropic’s Claude and Claude Code assisted me throughout
+this project: Claude Code helped write the training, evaluation
+and browser inference code, and both tools helped draft
+and edit the manuscript text and tables. I reviewed and checked
+all generated code and every reported number myself, and I
+take full responsibility for the results presented here.
+
 ## License
 
 MIT. See `LICENSE`.
